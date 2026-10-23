@@ -1,0 +1,10 @@
+# Depuración (BecarioGPT)
+
+- El script tiene `set -euo pipefail` (línea 22): cualquier comando que falle aborta la ejecución. Un fallo silencioso ya no es posible; si falla, verás el `[ERROR]` concreto o el aborto de bash.
+- Errores de CLI (todos con `exit 1` y mensajes `[ERROR]`): falta el nombre del proyecto (líneas 117-122), `-h/--help` (líneas 92-95), rutas que empiezan por `-` (líneas 96-101), rutas con `..` (líneas 102-105), dos proyectos a la vez (líneas 107-110), destino existente que no es directorio (líneas 133-136).
+- Si el directorio destino existe y no está vacío sin `--force`, el script aborta (líneas 138-146) sugiriendo `--force`. Con `--force`, las guardas `[ -s ]` omiten con `[WARN]` los ficheros no vacíos: si falta contenido, alguien lo editó y `--force` lo protegió, no es un bug.
+- Post-condición (líneas 503-519): si falta alguno de los 5 ficheros clave (`src/main.tex`, `.roo/rules/00_academic_core.md`, `context/hypothesis_matrix.md`, `data/stats_summary.json`, `reviews/peer_review_log.md`), el script emite `Post-condicion incumplida` y termina con `exit 1` aunque los pasos previos hayan "funcionado".
+- El mensaje de éxito REAL (líneas 524-525) es: `[OK]    Estructura academica generada en '<proyecto>'.` y `[OK]    Siguiente paso: rellenar context/call_guidelines.md y context/hypothesis_matrix.md (marcadores TODO).` Cualquier otro mensaje (p. ej. `✅ ...`) indica que se está ejecutando una versión antigua del script.
+- Directorios con nombre literal `{.roo/rules,...}` ya no son posibles (el `mkdir -p` usa rutas separadas, líneas 153-162); si aparecen, se está ejecutando código antiguo. Exige bash igualmente.
+- En Windows (shell por defecto cmd.exe) debe lanzarse vía Git Bash/WSL: `bash init_paper.sh <proyecto>`. Si el script aborta con errores de sintaxis bash, se ejecutó con sh/dash/cmd.
+- Trazar la ejecución completa con `bash -x init_paper.sh <proyecto> [--force]`. Los avisos `[WARN]` en `--force` son informativos (fichero protegido), no fallos.

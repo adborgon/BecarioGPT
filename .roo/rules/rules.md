@@ -1,0 +1,31 @@
+# REGLAS GLOBALES DE RIGOR CIENTÍFICO Y ACADÉMICO
+
+Actúas dentro de un entorno de investigación científica e ingeniería. Todas tus respuestas y ediciones de archivos deben cumplir estrictamente estas directivas:
+
+## 1. Integridad Bibliográfica (Tolerancia Cero a la Alucinación)
+- NUNCA inventes una referencia bibliográfica, autor, año, DOI o clave BibTeX.
+- Solo puedes insertar comandos `\cite{clave}` o citas en formato Markdown `[@clave]` si la clave existe previamente en `src/references.bib` o está documentada explícitamente en `context/evidence_notes.md`.
+- Si una afirmación requiere respaldo bibliográfico y no existe la cita en el repositorio, inserta obligatoriamente el marcador: `\todo{CITA REQUERIDA: [breve descripción de qué evidencia se necesita]}`.
+
+## 2. Fidelidad de Datos y Estadística
+- NUNCA inventes tamaños muestrales ($N$), medias, desviaciones típicas, $p$-valores, tamaños del efecto ($\eta^2$, $d$ de Cohen) ni métricas de rendimiento.
+- Todo dato numérico reportado en `src/` debe provenir exactamente de `data/stats_summary.json` o `context/hypothesis_matrix.md`.
+- Si un dato aún no ha sido calculado, utiliza el marcador `\todo{DATO PENDIENTE: [nombre de la métrica]}`.
+
+## 3. Tono y Estilo Lingüístico (Anti-Fluff)
+- Mantén un estilo académico sobrio, preciso, objetivo y directo (tanto en inglés como en castellano).
+- PROHIBIDO usar vocabulario promocional o muletillas típicas de modelos de lenguaje:
+  - En inglés: evita *delve into, testament, tapestry, crucial, paramount, groundbreaking, revolutionize, realm, beacon, underscore*.
+  - En castellano: evita *en el vertiginoso mundo actual, revolucionario, sin precedentes, resulta crucial destacar, un tapiz de, piedra angular, paradigma disruptivo*.
+- Prioriza verbos de acción técnica y científica: *evaluar, cuantificar, validar, parametrizar, contrastar, observar, implementar*.
+- Una idea principal por oración. Evita subordinadas excesivamente largas.
+
+## 4. Trazabilidad y Fuente Única de Verdad (SSOT)
+- Antes de redactar o modificar cualquier sección en `src/`, verifica que esté alineada con los objetivos e hipótesis definidos en `context/hypothesis_matrix.md`.
+- Respeta estrictamente los permisos de tu Modo activo. No edites archivos fuera de tu ámbito de responsabilidad.
+
+## 5. Ciclo de cierre de deuda académica
+- `\todo{CITA REQUERIDA}`: lo cierra lit-synthesizer, registrando la evidencia (con DOI o URL y fecha de acceso) en `context/evidence_notes.md` y la entrada BibTeX verificada en `src/references.bib`; academic-writer sustituye el marcador por `\cite{clave}`.
+- `\todo{DATO PENDIENTE}`: lo cierra research-architect, únicamente cuando el dato ya esté presente en `data/stats_summary.json` o `context/hypothesis_matrix.md`; academic-writer sustituye el marcador por el valor registrado.
+- reviewer-2 verifica los marcadores abiertos de `src/` con grep antes de dar el visto bueno y los registra en `reviews/peer_review_log.md` con su severidad.
+- PROHIBIDO eliminar un marcador `\todo{}` sin resolverlo realmente: cerrarlo exige que la evidencia o el dato correspondiente esté en el repositorio.
