@@ -1,0 +1,25 @@
+# --- LaTeX ---
+build/
+*.aux
+*.log
+*.out
+*.synctex.gz
+*.bbl
+*.blg
+*.fls
+*.fdb_latexmk
+*.toc
+*.lof
+*.lot
+
+# --- Python ---
+__pycache__/
+*.pyc
+
+# --- R ---
+.Rhistory
+*.Rproj
+
+# --- Sistema ---
+Thumbs.db
+.DS_Store

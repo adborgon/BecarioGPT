@@ -1,0 +1,6 @@
+# Post-condicion del tipo imrad (articulo empirico IMRaD).
+# Rutas relativas a la raiz del proyecto; se anaden a las de common/.
+src/01_introduction.tex
+src/02_methodology.tex
+src/03_results.tex
+src/04_discussion.tex

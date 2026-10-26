@@ -1,0 +1,39 @@
+% main.tex - Documento raiz de la tesis/TFG/TFM (clase report, por capitulos).
+% La capitulacion (SSOT) vive en context/thesis_outline.md; este fichero solo
+% compone. Compilar con pdflatex + bibtex.
+\documentclass[12pt]{report}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{booktabs}
+\usepackage{hyperref}
+
+% Marcadores academicos \todo{...} (ver .roo/rules/00_academic_core.md):
+% fallback compilable. Si anades el paquete todonotes, elimina esta linea.
+\providecommand{\todo}[1]{\textbf{[TODO: #1]}}
+
+\begin{document}
+
+% Front matter: portada, resumen e indice.
+\input{src/chapters/00_front}
+
+% Glosario de acronimos (sin numerar).
+\input{src/chapters/glossary}
+
+% Capitulos: el orden lo fija context/thesis_outline.md. Cada capitulo nuevo
+% se anade aqui y en la numeracion de src/chapters/ (numero siguiente).
+\input{src/chapters/01_introduction}
+\input{src/chapters/02_background}
+\input{src/chapters/03_methodology}
+\input{src/chapters/04_results}
+\input{src/chapters/05_conclusions}
+
+% Apendices.
+\appendix
+\input{src/appendices/appendix_a}
+
+\bibliographystyle{plain}
+\bibliography{src/references}
+
+\end{document}

@@ -1,0 +1,10 @@
+# Post-condicion comun a todos los tipos de proyecto (init_paper.sh).
+# Rutas relativas a la raiz del proyecto, una por linea; deben existir
+# (test -f) tras el scaffold o el script termina con exit 1.
+# Las lineas vacias y las que empiezan por '#' se ignoran.
+src/main.tex
+.roo/rules/00_academic_core.md
+context/hypothesis_matrix.md
+data/stats_summary.json
+reviews/peer_review_log.md
+.roo/mcp.json

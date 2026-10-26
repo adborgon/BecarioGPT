@@ -1,0 +1,11 @@
+# Post-condicion del tipo thesis (tesis/TFG/TFM por capitulos, clase report).
+# Rutas relativas a la raiz del proyecto; se anaden a las de common/.
+src/chapters/00_front.tex
+src/chapters/glossary.tex
+src/chapters/01_introduction.tex
+src/chapters/02_background.tex
+src/chapters/03_methodology.tex
+src/chapters/04_results.tex
+src/chapters/05_conclusions.tex
+src/appendices/appendix_a.tex
+context/thesis_outline.md

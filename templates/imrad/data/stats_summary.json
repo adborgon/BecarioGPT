@@ -1,0 +1,10 @@
+{
+  "project_type": "imrad",
+  "study_metadata": {
+    "design": "TODO (p. ej., ensayo controlado aleatorizado, estudio transversal)",
+    "n": null,
+    "preregistration_url": "TODO (URL de preregistro)"
+  },
+  "variables": [],
+  "notes": "Introducir en 'variables' solo datos ya calculados. Ejemplo de entrada: {\"id\": \"H1\", \"name\": \"TODO\", \"n\": null, \"mean\": null, \"sd\": null, \"p_value\": null, \"effect_size\": null}"
+}

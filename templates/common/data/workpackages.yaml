@@ -1,0 +1,15 @@
+# workpackages.yaml - Plan de trabajo del proyecto (SSOT).
+# El modo grant-workpackages edita este fichero.
+
+workpackages:
+  - id: WP1
+    title: "TODO: titulo del paquete de trabajo"
+    objectives:
+      - "TODO: objetivo 1 del WP1"
+    deliverables:
+      - "TODO: entregable 1 del WP1"
+    milestones:
+      - "TODO: hito 1 del WP1 (fecha AAAA-MM-DD)"
+    effort_pm: 0.0
+    risks:
+      - "TODO: riesgo 1 y su mitigacion"

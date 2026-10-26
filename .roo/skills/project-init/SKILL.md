@@ -1,6 +1,6 @@
 ---
 name: project-init
-description: Activa esta skill cuando el usuario ejecute un comando de inicialización (/init_project o /init_article) en una nueva carpeta para auditar el estado del repositorio y guiarle interactivamente en la configuración.
+description: Activa esta skill cuando el usuario invoque la inicialización de un proyecto nuevo (generado con `bash init_paper.sh <proyecto>`) para auditar el estado del repositorio y guiarle interactivamente en la configuración.
 modeSlugs:
   - research-architect
 ---
@@ -12,8 +12,8 @@ modeSlugs:
 Cuando el usuario invoque esta skill tras generar el scaffold con `init_paper.sh`, actúa como verificador de la estructura y configurador inicial del proyecto. El script ya crea directorios y plantillas: esta skill NO crea directorios ni toca `src/`.
 
 ## Paso 1: Verificación post-generación (sin crear nada)
-1. Comprueba la post-condición del scaffold: existen y no están vacíos `src/main.tex`, `.roo/rules/00_academic_core.md`, `context/hypothesis_matrix.md`, `data/stats_summary.json` y `reviews/peer_review_log.md`.
-2. Verifica que `.roo/rules/00_academic_core.md` contiene el marco íntegro: las 5 secciones (integridad bibliográfica, fidelidad de datos, tono anti-fluff, trazabilidad SSOT y ciclo de cierre de deuda académica con marcadores `\todo{}`).
+1. Comprueba la post-condición parametrizada del scaffold: TODAS las rutas listadas en `templates/common/postcheck.list` y en `templates/<tipo>/postcheck.list` del repositorio base (núcleo común + overlay del `--type` usado al generar) existen y no están vacíos en el proyecto. El tipo generado lo indica el campo `project_type` de `data/stats_summary.json`; si se desconoce, dedúcelo de ahí o pregúntalo al usuario antes de re-ejecutar. Como mínimo (ficheros comunes), deben existir y no estar vacíos `src/main.tex`, `.roo/rules/00_academic_core.md`, `context/hypothesis_matrix.md`, `data/stats_summary.json`, `reviews/peer_review_log.md` y `.roo/mcp.json`.
+2. Verifica que `.roo/rules/00_academic_core.md` contiene el marco íntegro: las 6 secciones (integridad bibliográfica, fidelidad de datos, tono anti-fluff, trazabilidad SSOT, ciclo de cierre de deuda académica con marcadores `\todo{}` y búsqueda de artículos vía Semantic Scholar MCP).
 3. Si falta o está incompleto algún elemento, indica al usuario re-ejecutar `bash init_paper.sh <proyecto> --force` (completa sin sobrescribir). NO reconstruyas ficheros a mano.
 
 ## Paso 2: Interrogatorio guiado al investigador

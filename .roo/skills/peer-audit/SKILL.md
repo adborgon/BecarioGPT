@@ -13,7 +13,7 @@ Toda verificación se anota en `reviews/peer_review_log.md` con la tabla existen
 
 ## A1 — Trazabilidad de Objetivos e Hipótesis
 
-1. `grep -nE "O[0-9]" src/*.tex` y `grep -nE "H[0-9]" src/*.tex`: cada objetivo e hipótesis de `context/hypothesis_matrix.md` debe aparecer en `src/`.
+1. `grep -rnE "O[0-9]" src --include=*.tex` y `grep -rnE "H[0-9]" src --include=*.tex`: cada objetivo e hipótesis de `context/hypothesis_matrix.md` debe aparecer en `src/` (búsqueda recursiva, compatible con estructuras anidadas como `src/chapters/`).
 2. Cada resultado presentado en Resultados o Discusión debe enlazar a una hipótesis (Hx) u objetivo (Ox) explícito de la matriz.
 3. Severidades: objetivo o hipótesis sin aparecer en `src/` → [MAYOR]; resultado sin hipótesis u objetivo asociado → [MAYOR].
 

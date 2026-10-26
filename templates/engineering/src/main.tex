@@ -1,0 +1,41 @@
+% main.tex - Documento raiz del paper de ingenieria / technical report.
+% Variante IMRaD orientada a implementacion y evaluacion experimental.
+% Compilar con pdflatex + bibtex.
+\documentclass[11pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{booktabs}
+\usepackage{hyperref}
+
+% Marcadores academicos \todo{...} (ver .roo/rules/00_academic_core.md):
+% fallback compilable. Si anades el paquete todonotes, elimina esta linea.
+\providecommand{\todo}[1]{\textbf{[TODO: #1]}}
+
+\title{TODO: titulo del paper}
+\author{TODO: autor/es}
+\date{TODO: fecha}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+TODO: resumen de 150--250 palabras.
+\end{abstract}
+
+\input{src/01_introduction}
+\input{src/02_related_work}
+\input{src/03_architecture}
+\input{src/04_implementation}
+\input{src/05_evaluation}
+\input{src/06_conclusion}
+
+\appendix
+\input{src/appendices/appendix_a}
+
+\bibliographystyle{plain}
+\bibliography{src/references}
+
+\end{document}

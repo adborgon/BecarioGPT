@@ -1,0 +1,9 @@
+# Post-condicion del tipo engineering (paper de ingenieria / technical report).
+# Rutas relativas a la raiz del proyecto; se anaden a las de common/.
+src/01_introduction.tex
+src/02_related_work.tex
+src/03_architecture.tex
+src/04_implementation.tex
+src/05_evaluation.tex
+src/06_conclusion.tex
+src/appendices/appendix_a.tex

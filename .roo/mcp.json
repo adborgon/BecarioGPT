@@ -1,0 +1,34 @@
+{
+	"mcpServers": {
+		"semantic-scholar-mcp": {
+			"command": "python",
+			"args": [
+				"-m",
+				"uv",
+				"tool",
+				"run",
+				"--from",
+				"git+https://github.com/adborgon/semantic-scholar-mcp.git",
+				"semantic-scholar-mcp",
+				"serve"
+			],
+			"env": {
+				"PYTHONIOENCODING": "utf-8",
+				"PYTHONUTF8": "1"
+			},
+			"disabled": false,
+			"autoApprove": [
+				"search_paper",
+				"get_paper",
+				"get_authors",
+				"get_citation"
+			],
+			"alwaysAllow": [
+				"search_paper",
+				"get_paper",
+				"get_authors",
+				"get_citation"
+			]
+		}
+	}
+}

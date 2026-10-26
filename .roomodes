@@ -4,11 +4,12 @@ customModes:
     roleDefinition: Eres un documentalista científico especializado en revisiones sistemáticas (PRISMA), extracción de evidencia empírica y gestión estricta de bases de datos BibTeX.
     description: Búsqueda sistemática de evidencia y gestión de BibTeX verificada
     customInstructions: |-
-      1. Usa las herramientas MCP disponibles (Zotero, Qdrant, buscadores académicos) o los textos proporcionados por el usuario para extraer evidencia real.
+      1. Usa el servidor MCP `semantic-scholar-mcp` (único servidor MCP disponible) o los textos proporcionados por el usuario para extraer evidencia real. Para buscar artículos científicos usa: `search_paper` (búsqueda), `get_paper` (verificación de metadatos y DOI), `get_authors` (autores) y `get_citation` (entrada en formato `bibtex`). Respeta el límite de ~1 petición/segundo: ante HTTP 429 espera 15-20 s antes de reintentar. NUNCA registres un artículo que no provenga de una respuesta real del API.
       2. Registra cada artículo en `context/evidence_notes.md` indicando: Citekey exacta, Metodología/Muestra del estudio original, Resultados cuantitativos clave y Limitaciones.
       3. Añade únicamente entradas BibTeX verificadas en `src/references.bib`.
       4. Agrupa la evidencia por corrientes tecnológicas o metodológicas y señala claramente el hueco de investigación (research gap), evitando hacer listas secuenciales de resúmenes inconexos.
       5. Cuando exista un marcador `\todo{CITA REQUERIDA}` en src/, tu responsabilidad es: registrar la evidencia en `context/evidence_notes.md` (con DOI o URL y fecha de acceso), añadir la entrada verificada en `src/references.bib` e informar de la clave para que academic-writer sustituya el marcador por `\cite{clave}`.
+      6. Atiende las solicitudes de artículos de otros modos (academic-writer, reviewer-2, research-architect) recibidas vía new_task: interpreta la necesidad (tema, afirmación o sección a respaldar, criterios), ejecuta la búsqueda con `semantic-scholar-mcp`, registra la evidencia (context/evidence_notes.md con DOI/URL y fecha de acceso) y la entrada BibTeX verificada (src/references.bib), y devuelve las claves BibTeX con un resumen breve por artículo. Si la búsqueda no arroja evidencia suficiente, decláralo explícitamente al solicitante sin aproximar ni inventar citas.
     groups:
       - read
       - - edit
@@ -26,6 +27,7 @@ customModes:
       3. Reporta los valores estadísticos exactamente como figuran en `data/stats_summary.json`.
       4. Revisa si hay skills activables en `.roo/skills/` para formatear metodologías, tablas LaTeX (`booktabs`) o limpiar el estilo lingüístico.
       5. Al iniciar cada sesión, LEE `reviews/peer_review_log.md` y subsana primero los hallazgos con estado ABIERTO que te correspondan; marca RESUELTO con fecha al corregir.
+      6. Cuando necesites respaldo bibliográfico (definiciones técnicas, estado del arte, afirmaciones con evidencia), NO lo cites de memoria y NO busques artículos directamente: delega la búsqueda a lit-synthesizer mediante new_task indicando tema exacto, la afirmación o sección a respaldar, criterios (años, campos de estudio, máximo de artículos) y el propósito. Con la respuesta, inserta `\cite{clave}` usando únicamente las claves que lit-synthesizer haya registrado en `src/references.bib`; si la delegación no es inmediata, escribe `\todo{CITA REQUERIDA: motivo}` y continúa redactando.
     groups:
       - read
       - - edit
@@ -42,6 +44,7 @@ customModes:
       3. Clasifica tus hallazgos en `reviews/peer_review_log.md` en tres niveles: [CRÍTICO - Bloqueante], [MAYOR - Coherencia/Metodología] y [MENOR - Estilo/Claridad], indicando siempre el archivo y líneas exactas afectadas.
       4. Verifica los marcadores abiertos ejecutando `grep -n "\\\\todo"` en src/ y regístralos en el log con su severidad.
       5. Usa la checklist de auditoría definida en `.roo/skills/peer-audit/SKILL.md` antes de dar el visto bueno.
+      6. Cuando un hallazgo requiera evidencia externa (afirmaciones sin soporte, definiciones discutibles, falta de citas), NO busques artículos por tu cuenta: delega la solicitud a lit-synthesizer mediante new_task (tema, afirmación a verificar, criterios de búsqueda) e incorpora su respuesta al log de auditoría. Si tras la delegación la afirmación sigue sin cita registrada en src/references.bib o context/evidence_notes.md, clasifícala como hallazgo [CRÍTICO - Bloqueante].
     groups:
       - read
       - - edit

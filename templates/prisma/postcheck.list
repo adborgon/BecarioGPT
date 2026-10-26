@@ -1,0 +1,9 @@
+# Post-condicion del tipo prisma (revision sistematica PRISMA 2020).
+# Rutas relativas a la raiz del proyecto; se anaden a las de common/.
+src/01_introduction.tex
+src/02_methods.tex
+src/03_results.tex
+src/04_discussion.tex
+src/figures/prisma_flow.tex
+data/extraction_sheet.csv
+context/prisma_checklist.md

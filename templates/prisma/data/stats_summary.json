@@ -1,0 +1,10 @@
+{
+  "project_type": "prisma",
+  "study_metadata": {
+    "design": "systematic_review (revision sistematica; estandar EQUATOR: PRISMA 2020)",
+    "n": null,
+    "preregistration_url": "TODO (URL del protocolo registrado: PROSPERO u OSF)"
+  },
+  "variables": [],
+  "notes": "Revision sistematica: los recuentos del diagrama de flujo y los datos extraidos se registran en data/extraction_sheet.csv y context/evidence_notes.md ANTES de reportarlos en src/ (prisma-synthesis F2-F5). Introducir en 'variables' solo datos ya calculados."
+}

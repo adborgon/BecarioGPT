@@ -29,3 +29,10 @@ Actúas dentro de un entorno de investigación científica e ingeniería. Todas 
 - `\todo{DATO PENDIENTE}`: lo cierra research-architect, únicamente cuando el dato ya esté presente en `data/stats_summary.json` o `context/hypothesis_matrix.md`; academic-writer sustituye el marcador por el valor registrado.
 - reviewer-2 verifica los marcadores abiertos de `src/` con grep antes de dar el visto bueno y los registra en `reviews/peer_review_log.md` con su severidad.
 - PROHIBIDO eliminar un marcador `\todo{}` sin resolverlo realmente: cerrarlo exige que la evidencia o el dato correspondiente esté en el repositorio.
+
+## 6. Búsqueda de artículos vía Semantic Scholar (MCP)
+- El único modo que ejecuta búsquedas de artículos es `lit-synthesizer`, mediante el servidor MCP `semantic-scholar-mcp` (tools: `search_paper`, `get_paper`, `get_authors`, `get_citation`).
+- `academic-writer` y `reviewer-2` NO invocan la búsqueda directamente: delegan a `lit-synthesizer` mediante `new_task`, especificando tema, afirmación o sección a respaldar, criterios (años, campos, máximo de artículos) y propósito.
+- Toda cita insertada debe provenir de resultados reales del API con DOI u otro identificador verificado. Prohibido citar de memoria: si no hay evidencia, el marcador `\todo{CITA REQUERIDA}` permanece abierto.
+- `lit-synthesizer` registra cada artículo antes de devolver claves: evidencia (DOI/URL + fecha de acceso) en `context/evidence_notes.md` y entrada BibTeX verificada en `src/references.bib`.
+- Respeta el rate limit del API (~1 petición/segundo): ante HTTP 429 espera 15-20 segundos antes de reintentar.
