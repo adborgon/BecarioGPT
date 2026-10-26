@@ -27,8 +27,9 @@ Regla transversal: ningún número (recuentos del diagrama de flujo, tamaños de
 
 ### F1 — Búsqueda
 1. Selecciona las bases según el dominio: PubMed (biomedicina), Scopus y Web of Science (multidisciplinares), IEEE Xplore y ACM DL (computación e ingeniería), PsycINFO (psicología). Justifica cada inclusión o exclusión.
-2. Documenta la estrategia completa: cadenas booleanas, campos consultados (título/resumen/keywords), filtros aplicados y rango de fechas.
-3. Registra la estrategia (bases, cadenas, fecha de ejecución, resultados crudos por base) en `rag/calls/` a cargo de research-architect **antes de ejecutar ninguna búsqueda**. Las búsquedas no documentadas no son utilizables en la revisión.
+2. Las búsquedas en PubMed no son manuales: se ejecutan vía el servidor MCP `pubmedmcp` (tool `search_abstracts`) a cargo de lit-synthesizer (ver `.roo/skills/s2-search/SKILL.md`).
+3. Documenta la estrategia completa: cadenas booleanas, campos consultados (título/resumen/keywords), filtros aplicados y rango de fechas.
+4. Registra la estrategia (bases, cadenas, fecha de ejecución, resultados crudos por base) en `rag/calls/` a cargo de research-architect **antes de ejecutar ninguna búsqueda**. Las búsquedas no documentadas no son utilizables en la revisión.
 
 ### F2 — Screening
 1. Deduplicación entre bases; registra el número de duplicados eliminados.

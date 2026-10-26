@@ -22,9 +22,9 @@
 #   [6] Seguridad MCP (F1): templates/common/mcp.json (fuente trackeada del
 #       repo y copiada a cada proyecto) sin claves API en claro, sin ruta
 #       absoluta de interprete, sin --refresh-package (instalacion cacheada
-#       de uv) y con las entradas de los 3 servidores (semantic-scholar-mcp,
-#       fetch, arxiv). El .roo/mcp.json local de este repo (gitignoreado,
-#       puede contener claves del usuario) NO se escanea.
+#       de uv) y con las entradas de los 4 servidores (semantic-scholar-mcp,
+#       fetch, arxiv, pubmedmcp). El .roo/mcp.json local de este repo
+#       (gitignoreado, puede contener claves del usuario) NO se escanea.
 #   [7] Consistencia LaTeX (F2): todo \input{...} / \include{...} presente en
 #       los .tex del proyecto generado corresponde a un fichero existente.
 #   [8] Retrocompatibilidad (F2): generar sin --type produce exactamente la
@@ -181,7 +181,7 @@ check_mcp_security() {
 }
 
 # ------------------------------------------------------------------------------
-# [T] Presencia de los 3 servidores MCP en la configuracion (F3-P0)
+# [T] Presencia de los 4 servidores MCP en la configuracion (F3-P0 + F3-P1a)
 # ------------------------------------------------------------------------------
 check_mcp_servers() {
     # $1: fichero mcp.json a auditar; $2: etiqueta descriptiva
@@ -190,7 +190,7 @@ check_mcp_servers() {
         record_fail "mcp.json ($_label): no existe o esta vacio ($_file)."
         return 0
     fi
-    for _srv in semantic-scholar-mcp fetch arxiv; do
+    for _srv in semantic-scholar-mcp fetch arxiv pubmedmcp; do
         if grep -Eq "\"$_srv\"[[:space:]]*:[[:space:]]*\{" "$_file"; then
             t_ok "mcp.json ($_label): servidor $_srv presente."
         else

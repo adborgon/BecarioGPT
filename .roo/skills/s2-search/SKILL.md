@@ -53,6 +53,12 @@ Ejecuta la búsqueda de evidencia bibliográfica real mediante el servidor MCP `
 - Registro (idéntico a S5): evidencia en `context/evidence_notes.md` y entrada BibTeX verificada en `src/references.bib`; incluye el eprint ID (o el DOI de la versión publicada si existe). Marca expresamente "preprint" en la nota de evidencia: un preprint NO sustituye a la versión publicada, por lo que si existe versión con DOI de revista o conferencia, registra y devuelve esa.
 - Rate limit: ~1 petición cada 3 segundos al API de arXiv; ante HTTP 429 o error, espera y reintenta con backoff.
 
+## Fuente adicional: PubMed (pubmedmcp)
+
+- Cuándo usarla: biomedicina y revisiones sistemáticas (PRISMA), o cuando `semantic-scholar-mcp` no arroja evidencia suficiente para el mismo tema. Las fases S0-S6 no cambian: en S1 usa el servidor `pubmedmcp` con su tool `search_abstracts` (término en `term`; `retmax` moderado, p. ej. 10-20) en lugar de las de Semantic Scholar.
+- Registro (idéntico a S5): evidencia en `context/evidence_notes.md` y entrada BibTeX verificada en `src/references.bib`; los abstracts devueltos incluyen DOI/PMID: registra el DOI de la versión publicada (o el PMID si no hay DOI) con su fecha de acceso.
+- Rate limit: ~3 peticiones/segundo al API de NCBI sin clave (hasta 10 con la clave gratuita `NCBI_API_KEY`, definida solo como variable de entorno del sistema, nunca en ficheros trackeados).
+
 ## Reglas transversales
 - Respeta el rate limit del API (~1 petición/segundo): ante HTTP 429 espera 15-20 segundos antes de reintentar.
 - Prohibido inventar autores, años, DOI o entradas BibTeX: todo registro debe provenir de una respuesta real del API.
