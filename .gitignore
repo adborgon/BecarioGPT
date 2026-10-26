@@ -1,0 +1,11 @@
+# Configuracion MCP local de este repo: puede contener claves API del
+# usuario y NUNCA se commitea. Los proyectos generados reciben la plantilla
+# limpia templates/common/mcp.json (sin claves).
+.roo/mcp.json
+
+# Caches de Python
+__pycache__/
+*.pyc
+
+# Cache local de papers arXiv (RAG)
+rag/cache/

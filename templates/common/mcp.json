@@ -1,0 +1,78 @@
+{
+	"mcpServers": {
+		"semantic-scholar-mcp": {
+			"command": "python",
+			"args": [
+				"-m",
+				"uv",
+				"tool",
+				"run",
+				"--from",
+				"git+https://github.com/adborgon/semantic-scholar-mcp.git",
+				"semantic-scholar-mcp",
+				"serve"
+			],
+			"env": {
+				"PYTHONIOENCODING": "utf-8",
+				"PYTHONUTF8": "1"
+			},
+			"disabled": false,
+			"autoApprove": [
+				"search_paper",
+				"get_paper",
+				"get_authors",
+				"get_citation"
+			],
+			"alwaysAllow": [
+				"search_paper",
+				"get_paper",
+				"get_authors",
+				"get_citation"
+			]
+		},
+		"fetch": {
+			"command": "python",
+			"args": [
+				"-m",
+				"uv",
+				"tool",
+				"run",
+				"mcp-server-fetch"
+			],
+			"disabled": false,
+			"autoApprove": [
+				"fetch"
+			],
+			"alwaysAllow": [
+				"fetch"
+			]
+		},
+		"arxiv": {
+			"command": "python",
+			"args": [
+				"-m",
+				"uv",
+				"tool",
+				"run",
+				"arxiv-mcp-server",
+				"--storage-path",
+				"./rag/cache/papers"
+			],
+			"disabled": false,
+			"autoApprove": [
+				"search_papers",
+				"download_paper",
+				"read_paper",
+				"get_abstract",
+				"list_papers"
+			],
+			"alwaysAllow": [
+				"search_papers",
+				"download_paper",
+				"read_paper",
+				"get_abstract",
+				"list_papers"
+			]
+		}
+	}
+}

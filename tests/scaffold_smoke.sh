@@ -19,9 +19,12 @@
 #       ruta con '-' o '..', dos proyectos, --type desconocido, --type sin
 #       valor) abortan con exit 1.
 #   [5] Todos los mensajes del scaffold son ASCII puro (sin acentos/emojis).
-#   [6] Seguridad MCP (F1): .roo/mcp.json (fuente del repo y copiado a cada
-#       proyecto) sin claves API en claro, sin ruta absoluta de interprete y
-#       sin --refresh-package (instalacion cacheada de uv).
+#   [6] Seguridad MCP (F1): templates/common/mcp.json (fuente trackeada del
+#       repo y copiada a cada proyecto) sin claves API en claro, sin ruta
+#       absoluta de interprete, sin --refresh-package (instalacion cacheada
+#       de uv) y con las entradas de los 3 servidores (semantic-scholar-mcp,
+#       fetch, arxiv). El .roo/mcp.json local de este repo (gitignoreado,
+#       puede contener claves del usuario) NO se escanea.
 #   [7] Consistencia LaTeX (F2): todo \input{...} / \include{...} presente en
 #       los .tex del proyecto generado corresponde a un fichero existente.
 #   [8] Retrocompatibilidad (F2): generar sin --type produce exactamente la
@@ -175,6 +178,25 @@ check_mcp_security() {
     else
         t_ok "mcp.json ($_label): sin --refresh-package (instalacion cacheada)."
     fi
+}
+
+# ------------------------------------------------------------------------------
+# [T] Presencia de los 3 servidores MCP en la configuracion (F3-P0)
+# ------------------------------------------------------------------------------
+check_mcp_servers() {
+    # $1: fichero mcp.json a auditar; $2: etiqueta descriptiva
+    _file="$1"; _label="$2"
+    if [ ! -s "$_file" ]; then
+        record_fail "mcp.json ($_label): no existe o esta vacio ($_file)."
+        return 0
+    fi
+    for _srv in semantic-scholar-mcp fetch arxiv; do
+        if grep -Eq "\"$_srv\"[[:space:]]*:[[:space:]]*\{" "$_file"; then
+            t_ok "mcp.json ($_label): servidor $_srv presente."
+        else
+            record_fail "mcp.json ($_label): falta el servidor $_srv."
+        fi
+    done
 }
 
 detect_python() {
@@ -354,8 +376,11 @@ fi
 
 t_ok "Directorio temporal de trabajo: $TMP_ROOT"
 
-# Seguridad MCP sobre el fichero FUENTE del repo (proteccion anti-regresion)
-check_mcp_security "$SCRIPT_DIR/.roo/mcp.json" "fuente del repo"
+# Seguridad MCP sobre la fuente TRACKEADA del repo (proteccion anti-regresion).
+# .roo/mcp.json es configuracion LOCAL de este repo (gitignoreada, puede
+# contener claves del usuario) y deliberadamente NO se escanea aqui.
+check_mcp_security "$TEMPLATE_ROOT/common/mcp.json" "fuente trackeada (templates/common)"
+check_mcp_servers "$TEMPLATE_ROOT/common/mcp.json" "fuente trackeada (templates/common)"
 
 # ------------------------------------------------------------------------------
 # [1]-[3], [6]-[7] Por cada tipo de proyecto: generacion, post-condicion
@@ -373,6 +398,7 @@ for TYPE in "${PROJECT_TYPES[@]}"; do
     check_run "$LOG_GEN" 0 "generacion inicial ($TYPE)" "$PROJ" --type "$TYPE"
     check_postcondition "$PROJ" "$TYPE"
     check_mcp_security "$PROJ/.roo/mcp.json" "copiado al proyecto ($TYPE)"
+    check_mcp_servers "$PROJ/.roo/mcp.json" "copiado al proyecto ($TYPE)"
     check_json "$PROJ/data/stats_summary.json"
     check_yaml "$PROJ/data/workpackages.yaml"
     check_latex_consistency "$PROJ" "$TYPE"

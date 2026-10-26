@@ -2,7 +2,7 @@
 
 BecarioGPT es un repositorio base para la **redacción de artículos científicos (IMRaD)** y la **preparación de propuestas de proyectos de investigación competitivos** con asistentes de IA basados en agentes (Zoo Code / Roo Code).
 
-Su único contenido ejecutable es `init_paper.sh`: un script que genera la estructura inicial de cada proyecto de paper (LaTeX + workflow de investigación) **según el tipo de contribución** (`--type`: `imrad` por defecto, `prisma`, `thesis` o `engineering`) y copia a cada proyecto la configuración de agentes de este repo (`.roomodes`, `.roo/rules/`, `.roo/skills/`, `.roo/mcp.json`).
+Su único contenido ejecutable es `init_paper.sh`: un script que genera la estructura inicial de cada proyecto de paper (LaTeX + workflow de investigación) **según el tipo de contribución** (`--type`: `imrad` por defecto, `prisma`, `thesis` o `engineering`) y copia a cada proyecto la configuración de agentes de este repo (`.roomodes`, `.roo/rules/`, `.roo/skills/` y la configuración MCP trackeada `templates/common/mcp.json` → `.roo/mcp.json` del proyecto).
 
 El sistema está diseñado bajo el principio de **Separación de Responsabilidades y Single Source of Truth (SSOT)** para evitar alucinaciones bibliográficas, desajustes metodológicos y errores de formato.
 
@@ -15,9 +15,10 @@ El sistema está diseñado bajo el principio de **Separación de Responsabilidad
 ├── init_paper.sh              # Único script: genera la estructura de un proyecto nuevo
 ├── README.md                  # Esta documentación
 ├── AGENTS.md                  # Guía técnica para agentes de código
+├── .gitignore                 # Ignora .roo/mcp.json (config MCP local), __pycache__/, *.pyc y rag/cache/
 ├── .roomodes                  # Definición de los 4 modos académicos (se copia a cada proyecto)
 ├── templates/                 # Catálogo de plantillas por tipo de proyecto (con postcheck.list por tipo)
-│   ├── common/                # SSOT comunes a todos los tipos (más postcheck.list común)
+│   ├── common/                # SSOT comunes a todos los tipos (postcheck.list común + mcp.json trackeada, sin claves)
 │   ├── imrad/                 # Artículo empírico IMRaD (tipo por defecto)
 │   ├── prisma/                # Revisión sistemática PRISMA 2020
 │   ├── thesis/                # Tesis/TFG/TFM por capítulos (clase report)
@@ -30,7 +31,7 @@ El sistema está diseñado bajo el principio de **Separación de Responsabilidad
 │   ├── rules-ask/             # Reglas para el modo Ask (solo de este repo; NO se copia)
 │   ├── rules-architect/       # Reglas para el modo Architect (solo de este repo; NO se copia)
 │   ├── rules-research-architect/  # Reglas adicionales de research-architect (solo de este repo; NO se copia)
-│   ├── mcp.json               # Configuración del servidor MCP semantic-scholar-mcp (se copia a cada proyecto; sin claves API en claro)
+│   ├── mcp.json               # Configuración MCP LOCAL de este repo (gitignoreada; puede contener claves; JAMÁS se commitea)
 │   └── skills/                # 8 skills de agentes (se copian a cada proyecto)
 ├── tests/
 │   └── scaffold_smoke.sh      # Suite de humo: post-condición, noclobber, seguridad MCP, retrocompatibilidad
@@ -53,7 +54,7 @@ nombre-del-proyecto/
 ├── .roo/
 │   ├── rules/
 │   │   └── 00_academic_core.md    # Copia íntegra de .roo/rules/rules.md
-│   ├── mcp.json                   # Configuración MCP (semantic-scholar-mcp) copiada del repo (sin claves API)
+│   ├── mcp.json                   # Configuración MCP (3 servidores: semantic-scholar-mcp, fetch, arxiv) copiada de templates/common/mcp.json (sin claves API)
 │   └── skills/                    # Las 8 skills copiadas del repo
 ├── context/
 │   ├── call_guidelines.md     # Requisitos de la revista/convocatoria (SSOT)
@@ -71,7 +72,8 @@ nombre-del-proyecto/
 ├── rag/
 │   ├── calls/                 # Estrategias de búsqueda y convocatorias
 │   ├── past_projects/
-│   └── templates/
+│   ├── templates/
+│   └── cache/papers/          # Caché de papers del servidor MCP arxiv
 └── .gitignore                 # LaTeX + Python/R
 ```
 
@@ -95,7 +97,7 @@ Los 4 modos académicos están definidos en `.roomodes`. Cada uno restringe su e
 | Modo | Ficheros editables (fileRegex) | Role |
 |------|-------------------------------|------|
 | 📐 Arquitecto de Estructura (`research-architect`) | `^(context/.*\|data/.*\|rag/calls/.*)$` | Traduce ideas, hipótesis y requisitos de convocatoria en matrices de trazabilidad (`hypothesis_matrix.md`), paquetes de trabajo (`workpackages.yaml`) y estrategias de búsqueda (`rag/calls/`). Cierra los marcadores `\todo{DATO PENDIENTE}` registrando el dato en su ámbito. |
-| 📚 Sintetizador Bibliográfico (`lit-synthesizer`) | `^(context/evidence_notes\.md\|src/references\.bib)$` | Único modo con acceso al MCP `semantic-scholar-mcp`: búsqueda sistemática de evidencia, registro en `evidence_notes.md` y gestión de BibTeX verificada en `references.bib`. Cierra los marcadores `\todo{CITA REQUERIDA}`. |
+| 📚 Sintetizador Bibliográfico (`lit-synthesizer`) | `^(context/evidence_notes\.md\|src/references\.bib)$` | Único modo con acceso a los MCP `semantic-scholar-mcp` y `arxiv` (arxiv-mcp-server): búsqueda sistemática de evidencia, registro en `evidence_notes.md` y gestión de BibTeX verificada en `references.bib`. Cierra los marcadores `\todo{CITA REQUERIDA}`. |
 | ✍️ Redactor Científico (`academic-writer`) | `^(src/.*\.(tex\|md)\|src/figures/.*)$` | Redacta el manuscrito LaTeX en `src/`. Prohibido editar `references.bib`: solo usa `\cite{clave}` de claves existentes o inserta `\todo{CITA REQUERIDA}`. Las búsquedas de artículos las delega a `lit-synthesizer` vía `new_task`. Al iniciar sesión, lee `reviews/peer_review_log.md` y subsana los hallazgos ABIERTOS. |
 | 🔍 Auditor Peer-Review (`reviewer-2`) | `^reviews/.*\.md$` | Solo lectura sobre `src/` y `context/`. Audita la coherencia, verifica los `\todo{}` con `grep` y registra hallazgos con severidad en `reviews/peer_review_log.md`. Las búsquedas de artículos las delega a `lit-synthesizer` vía `new_task`. Usa la checklist de `.roo/skills/peer-audit/SKILL.md`. |
 
@@ -110,7 +112,7 @@ Los 4 modos académicos están definidos en `.roomodes`. Cada uno restringe su e
 | `latex-tables` | academic-writer | Tablas con `booktabs` exclusivamente: sin líneas verticales ni `\hline`, convenciones numéricas y estadísticas, plantilla base. |
 | `peer-audit` | reviewer-2 | Checklist de auditoría en 6 fases (A1-A6): trazabilidad O/H, deuda `\todo`, integridad bibliográfica, fidelidad de datos, estilo y reporting EQUATOR. |
 | `style-defluff` | academic-writer | Purga de muletillas de IA con linter `grep` en dos pasadas, excepciones técnicas y jerarquía normativa (gana `rules.md`). |
-| `s2-search` | lit-synthesizer | Búsqueda y verificación de artículos vía el MCP `semantic-scholar-mcp` (fases S0-S6): `search_paper`, `get_paper` (verificación de DOI), `get_authors` y `get_citation` (bibtex). |
+| `s2-search` | lit-synthesizer | Búsqueda y verificación de artículos vía el MCP `semantic-scholar-mcp` (fases S0-S6): `search_paper`, `get_paper` (verificación de DOI), `get_authors` y `get_citation` (bibtex). Fuente adicional: `arxiv` para preprints y campos CS/EE. |
 
 ## 🔄 Flujo de trabajo recomendado
 
@@ -119,7 +121,7 @@ Los 4 modos académicos están definidos en `.roomodes`. Cada uno restringe su e
 3. **academic-writer**: redacta las secciones en `src/` usando exclusivamente los datos de `data/stats_summary.json` y `context/hypothesis_matrix.md`, y las citas de `src/references.bib`.
 4. **reviewer-2**: audita con `.roo/skills/peer-audit/SKILL.md` y registra los hallazgos en `reviews/peer_review_log.md`.
 
-**Solicitud de artículos (MCP Semantic Scholar).** Cuando `academic-writer` necesita respaldar una afirmación (p. ej., la definición de *presencia* en realidad virtual), delega a **lit-synthesizer** vía `new_task`; este busca con `semantic-scholar-mcp` (`search_paper` → `get_paper` para verificar el DOI → `get_citation` en bibtex), registra la evidencia (DOI + fecha de acceso) en `context/evidence_notes.md` y la entrada verificada en `src/references.bib`, y devuelve las claves BibTeX; `academic-writer` inserta `\cite{clave}`. Si no hay evidencia verificable, el marcador `\todo{CITA REQUERIDA}` permanece abierto.
+**Solicitud de artículos (MCP Semantic Scholar y arXiv).** Cuando `academic-writer` necesita respaldar una afirmación (p. ej., la definición de *presencia* en realidad virtual), delega a **lit-synthesizer** vía `new_task`; este busca con `semantic-scholar-mcp` (`search_paper` → `get_paper` para verificar el DOI → `get_citation` en bibtex) o con `arxiv` para preprints/CS/EE, registra la evidencia (DOI + fecha de acceso) en `context/evidence_notes.md` y la entrada verificada en `src/references.bib`, y devuelve las claves BibTeX; `academic-writer` inserta `\cite{clave}`. Si no hay evidencia verificable, el marcador `\todo{CITA REQUERIDA}` permanece abierto.
 
 El ciclo de deuda académica cierra los marcadores `\todo{}`:
 - `\todo{CITA REQUERIDA}` → lo cierra **lit-synthesizer** (evidencia con DOI + fecha en `evidence_notes.md` y BibTeX en `references.bib`); **academic-writer** sustituye el marcador por `\cite{clave}`.
@@ -156,12 +158,14 @@ El ciclo de deuda académica cierra los marcadores `\todo{}`:
 - **bash real** (Git Bash o WSL en Windows): el script usa `set -euo pipefail`; no funciona en sh/dash/cmd.exe.
 - Sin dependencias externas: solo usa binarios estándar (`mkdir`, `cp`, `cat`, `find`, `ls`, `printf`, `echo`, `test`, `dirname`).
 - Para el MCP `semantic-scholar-mcp` (búsquedas de `lit-synthesizer`): el servidor se arranca con `python -m uv tool run --from git+https://github.com/adborgon/semantic-scholar-mcp.git semantic-scholar-mcp serve`. Requiere `python` en el `PATH` con el paquete `uv` instalado (`pip install uv`); `uv tool run` cachea el paquete y NO reinstala en cada arranque (sin `--refresh-package`). El API admite ~1 petición/segundo: ante HTTP 429, esperar 15-20 s antes de reintentar.
-- **Seguridad**: `.roo/mcp.json` no contiene ninguna clave API en claro: el servidor hereda la variable de entorno `SEMANTIC_SCHOLAR_API_KEY` del sistema (ver sección siguiente). No publiques este repo (ni los proyectos generados) en repositorios públicos y no reintroduzcas la clave en ningún fichero versionado.
+- Para el MCP `arxiv` (segunda fuente de `lit-synthesizer`): el servidor se arranca con `python -m uv tool run arxiv-mcp-server --storage-path ./rag/cache/papers` (~1 petición cada 3 s); su caché de papers vive en `rag/cache/papers` del proyecto.
+- Para el MCP `fetch` (único servidor de `research-architect`): `python -m uv tool run mcp-server-fetch`.
+- **Seguridad** (config local / tracked): los proyectos generados reciben la plantilla trackeada `templates/common/mcp.json`, que **no contiene ninguna clave API**: el servidor S2 hereda la variable de entorno `SEMANTIC_SCHOLAR_API_KEY` del sistema. El `.roo/mcp.json` de ESTE repo es configuración local: está en `.gitignore` y **NUNCA se commitea**. No publiques este repo (ni los proyectos generados) en repositorios públicos.
 - Para compilar el manuscrito generado: `pdflatex` + `bibtex` (fuera del alcance del script).
 
 ### 🔑 Configuración de la clave API (SEMANTIC_SCHOLAR_API_KEY)
 
-`.roo/mcp.json` **no incluye ninguna clave API**: el proceso del servidor MCP hereda la variable de entorno `SEMANTIC_SCHOLAR_API_KEY` del sistema. Si la variable no está definida, el servidor no se autentica y las búsquedas de `lit-synthesizer` fallarán (es un paso de configuración, no un fallo del scaffold).
+La plantilla trackeada `templates/common/mcp.json` (la que se copia a cada proyecto) **no incluye ninguna clave API**: el proceso del servidor hereda la variable de entorno `SEMANTIC_SCHOLAR_API_KEY` del sistema. Si la variable no está definida, el servidor no se autentica y las búsquedas de `lit-synthesizer` fallarán (es un paso de configuración, no un fallo del scaffold). El fichero `.roo/mcp.json` de este repo es configuración **local** (gitignoreado): puede contener la clave del usuario y jamás se commitea.
 
 **Windows 11** (elige una opción):
 
@@ -179,4 +183,4 @@ El ciclo de deuda académica cierra los marcadores `\todo{}`:
 export SEMANTIC_SCHOLAR_API_KEY="TU_CLAVE_AQUI"
 ```
 
-**Advertencia de seguridad**: no escribas la clave en ningún fichero del repositorio (`.roo/mcp.json`, scripts, documentación…) y no publiques este repo ni los proyectos generados en repositorios públicos. La clave vive únicamente en el entorno del sistema.
+**Advertencia de seguridad**: la única excepción permitida es el fichero local `.roo/mcp.json` de este repo (gitignoreado). No escribas la clave en ningún otro fichero del repositorio (scripts, documentación, plantillas…) y no publiques este repo ni los proyectos generados en repositorios públicos. La plantilla trackeada `templates/common/mcp.json` jamás debe contener claves.

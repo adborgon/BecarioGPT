@@ -47,6 +47,12 @@ Ejecuta la búsqueda de evidencia bibliográfica real mediante el servidor MCP `
 2. Indica qué marcadores `\todo{CITA REQUERIDA}` quedan cerrados con la evidencia registrada y si alguno sigue abierto por falta de evidencia.
 3. Si la búsqueda no arroja evidencia suficiente, decláralo explícitamente al solicitante sin aproximar ni inventar citas.
 
+## Fuente adicional: arXiv
+
+- Cuándo usarla: preprints, ciencias de la computación (campos `cs.*`) e ingeniería eléctrica y electrónica (`eess.*`), o cuando `semantic-scholar-mcp` no arroje evidencia suficiente para el mismo tema. Las fases S0-S6 no cambian: en S1-S4 usa las tools de `arxiv` (`search_papers`, `get_abstract`, `download_paper`, `read_paper`, `list_papers`) en lugar de las de Semantic Scholar.
+- Registro (idéntico a S5): evidencia en `context/evidence_notes.md` y entrada BibTeX verificada en `src/references.bib`; incluye el eprint ID (o el DOI de la versión publicada si existe). Marca expresamente "preprint" en la nota de evidencia: un preprint NO sustituye a la versión publicada, por lo que si existe versión con DOI de revista o conferencia, registra y devuelve esa.
+- Rate limit: ~1 petición cada 3 segundos al API de arXiv; ante HTTP 429 o error, espera y reintenta con backoff.
+
 ## Reglas transversales
 - Respeta el rate limit del API (~1 petición/segundo): ante HTTP 429 espera 15-20 segundos antes de reintentar.
 - Prohibido inventar autores, años, DOI o entradas BibTeX: todo registro debe provenir de una respuesta real del API.

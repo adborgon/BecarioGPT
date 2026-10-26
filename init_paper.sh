@@ -17,8 +17,9 @@
 #     Tipo por defecto: imrad (retrocompatible con la version anterior).
 #   - Copia INTEGRO el marco academico del repo (.roo/rules/rules.md) al
 #     proyecto como .roo/rules/00_academic_core.md; ademas copia .roomodes,
-#     las skills (.roo/skills) y .roo/mcp.json. Sin heredoc de respaldo: si
-#     falta rules.md y hay que generarlo, el scaffold aborta con [ERROR]
+#     las skills (.roo/skills) y la configuracion MCP trackeada
+#     (templates/common/mcp.json -> .roo/mcp.json). Sin heredoc de respaldo:
+#     si falta rules.md y hay que generarlo, el scaffold aborta con [ERROR]
 #     (fail-fast).
 #   - Idempotente: con --force crea solo lo que falta y NUNCA sobrescribe
 #     ficheros existentes no vacios (protege los SSOT ya editados).
@@ -70,8 +71,9 @@ write_template() {
 }
 
 # Copia los ficheros de un directorio de plantillas al proyecto (guarda
-# noclobber de write_template). El fichero postcheck.list es metadato del
-# repo y NO se copia al proyecto.
+# noclobber de write_template). Los ficheros postcheck.list son metadatos del
+# repo y NO se copian al proyecto; mcp.json tampoco se copia aqui (se copia
+# aparte, desde templates/common/mcp.json a .roo/mcp.json del proyecto).
 # $1: raiz de plantillas; $2: subdirectorio (common o tipo); $3: proyecto.
 copy_templates() {
     _tpl_root="$1"
@@ -79,9 +81,9 @@ copy_templates() {
     _proj="$3"
     find "$_tpl_root/$_tpl_kind" -type f | while IFS= read -r _src_file; do
         _rel_path=${_src_file#"$_tpl_root/$_tpl_kind/"}
-        if [ "$_rel_path" = "postcheck.list" ]; then
-            continue
-        fi
+        case "$_rel_path" in
+            postcheck.list|mcp.json) continue ;;
+        esac
         mkdir -p "$_proj/$(dirname "$_rel_path")"
         write_template "$_proj/$_rel_path" < "$_src_file"
     done
@@ -270,7 +272,8 @@ mkdir -p \
     "$PROJECT_DIR/reviews" \
     "$PROJECT_DIR/rag/calls" \
     "$PROJECT_DIR/rag/past_projects" \
-    "$PROJECT_DIR/rag/templates"
+    "$PROJECT_DIR/rag/templates" \
+    "$PROJECT_DIR/rag/cache/papers"
 
 # ------------------------------------------------------------------------------
 # [8] Copia INTEGRA del marco academico y de los agentes desde el repo
@@ -318,10 +321,13 @@ else
     msg_ok "Marco academico integro copiado a .roo/rules/00_academic_core.md."
 fi
 
-# [8.4] Configuracion MCP (.roo/mcp.json del repo -> proyecto). El fichero
-#       NO contiene claves API: el servidor MCP hereda la variable de entorno
-#       SEMANTIC_SCHOLAR_API_KEY del sistema del usuario.
-MCP_SRC="$SCRIPT_DIR/.roo/mcp.json"
+# [8.4] Configuracion MCP (plantilla trackeada templates/common/mcp.json ->
+#       .roo/mcp.json del proyecto). La plantilla NO contiene claves API: el
+#       servidor semantic-scholar-mcp hereda la variable de entorno
+#       SEMANTIC_SCHOLAR_API_KEY del sistema del usuario. La cache del
+#       servidor arXiv usa la ruta relativa ./rag/cache/papers (creada en el
+#       bloque [7]).
+MCP_SRC="$TEMPLATE_ROOT/common/mcp.json"
 MCP_DST="$PROJECT_DIR/.roo/mcp.json"
 if [ -f "$MCP_SRC" ]; then
     if [ -s "$MCP_DST" ]; then
@@ -333,7 +339,7 @@ if [ -f "$MCP_SRC" ]; then
         msg_warn "No publiques este repositorio ni los proyectos generados en repositorios publicos."
     fi
 else
-    msg_warn ".roo/mcp.json no encontrado en $SCRIPT_DIR: el proyecto no tendra servidores MCP configurados."
+    msg_warn "templates/common/mcp.json no encontrado en $TEMPLATE_ROOT: el proyecto no tendra servidores MCP configurados."
 fi
 
 # ------------------------------------------------------------------------------

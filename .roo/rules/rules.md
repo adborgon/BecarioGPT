@@ -30,9 +30,11 @@ Actúas dentro de un entorno de investigación científica e ingeniería. Todas 
 - reviewer-2 verifica los marcadores abiertos de `src/` con grep antes de dar el visto bueno y los registra en `reviews/peer_review_log.md` con su severidad.
 - PROHIBIDO eliminar un marcador `\todo{}` sin resolverlo realmente: cerrarlo exige que la evidencia o el dato correspondiente esté en el repositorio.
 
-## 6. Búsqueda de artículos vía Semantic Scholar (MCP)
-- El único modo que ejecuta búsquedas de artículos es `lit-synthesizer`, mediante el servidor MCP `semantic-scholar-mcp` (tools: `search_paper`, `get_paper`, `get_authors`, `get_citation`).
+## 6. Búsqueda de artículos vía MCP (Semantic Scholar y arXiv)
+- El único modo que ejecuta búsquedas de artículos es `lit-synthesizer`, mediante los servidores MCP `semantic-scholar-mcp` (tools: `search_paper`, `get_paper`, `get_authors`, `get_citation`) y `arxiv` (arxiv-mcp-server; tools: `search_papers`, `get_abstract`, `download_paper`, `read_paper`, `list_papers`).
+- arXiv es la segunda fuente de literatura de `lit-synthesizer`, indicada para preprints y para ciencias de la computación e ingeniería eléctrica y electrónica (campos `cs.*` y `eess.*`). Al registrar un preprint, marca expresamente "preprint" en `context/evidence_notes.md`; un preprint NO sustituye a la versión publicada: si existe versión publicada (con DOI de revista o conferencia), esa es la que debe registrarse y citarse.
 - `academic-writer` y `reviewer-2` NO invocan la búsqueda directamente: delegan a `lit-synthesizer` mediante `new_task`, especificando tema, afirmación o sección a respaldar, criterios (años, campos, máximo de artículos) y propósito.
-- Toda cita insertada debe provenir de resultados reales del API con DOI u otro identificador verificado. Prohibido citar de memoria: si no hay evidencia, el marcador `\todo{CITA REQUERIDA}` permanece abierto.
+- `research-architect` usa únicamente el servidor `fetch` (mcp-server-fetch) para convocatorias y documentación; la búsqueda de literatura le está PROHIBIDA y la delega a `lit-synthesizer` mediante `new_task`.
+- Toda cita insertada debe provenir de resultados reales del API con DOI, eprint u otro identificador verificado. Prohibido citar de memoria: si no hay evidencia, el marcador `\todo{CITA REQUERIDA}` permanece abierto.
 - `lit-synthesizer` registra cada artículo antes de devolver claves: evidencia (DOI/URL + fecha de acceso) en `context/evidence_notes.md` y entrada BibTeX verificada en `src/references.bib`.
-- Respeta el rate limit del API (~1 petición/segundo): ante HTTP 429 espera 15-20 segundos antes de reintentar.
+- Respeta los rate limits: Semantic Scholar ~1 petición/segundo (ante HTTP 429 espera 15-20 segundos antes de reintentar) y arXiv ~1 petición cada 3 segundos.
