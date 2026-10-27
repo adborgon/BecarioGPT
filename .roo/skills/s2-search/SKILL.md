@@ -51,7 +51,7 @@ Ejecuta la búsqueda de evidencia bibliográfica real mediante el servidor MCP `
 
 - Cuándo usarla: preprints, ciencias de la computación (campos `cs.*`) e ingeniería eléctrica y electrónica (`eess.*`), o cuando `semantic-scholar-mcp` no arroje evidencia suficiente para el mismo tema. Las fases S0-S6 no cambian: en S1-S4 usa las tools de `arxiv` (`search_papers`, `get_abstract`, `download_paper`, `read_paper`, `list_papers`) en lugar de las de Semantic Scholar.
 - Registro (idéntico a S5): evidencia en `context/evidence_notes.md` y entrada BibTeX verificada en `src/references.bib`; incluye el eprint ID (o el DOI de la versión publicada si existe). Marca expresamente "preprint" en la nota de evidencia: un preprint NO sustituye a la versión publicada, por lo que si existe versión con DOI de revista o conferencia, registra y devuelve esa.
-- Rate limit: ~1 petición cada 3 segundos al API de arXiv; ante HTTP 429 o error, espera y reintenta con backoff.
+- Rate limit: ~1 petición cada 3 segundos al API de arXiv; ante error o HTTP 429 sigue la escalera de backoff del marco académico §7 (esperar 10 s, 30 s, 90 s; máx. 3 intentos) y, al agotar, registra el bloqueo (D1) en `context/escalation_queue.md` dejando el marcador `\todo{}` abierto.
 
 ## Fuente adicional: PubMed (pubmedmcp)
 
@@ -66,7 +66,7 @@ Ejecuta la búsqueda de evidencia bibliográfica real mediante el servidor MCP `
 - Rate limit: uso educado del API oficial api.crossref.org (evita ráfagas que provoquen 402/429); `CROSSREF_MAILTO` opcional solo como variable de entorno del sistema (polite pool), nunca en ficheros trackeados.
 
 ## Reglas transversales
-- Respeta el rate limit del API (~1 petición/segundo): ante HTTP 429 espera 15-20 segundos antes de reintentar.
+- Backoff ante HTTP 429 (escalera del marco académico §7): respeta la cortesía de ~1 petición/segundo y, ante 429, espera 20 s, 40 s, 80 s y 160 s (máx. 4 intentos). Al agotar los intentos: registra el bloqueo en `context/escalation_queue.md` como decisión D1 y deja el marcador `\todo{CITA REQUERIDA}` abierto (§5); no reintentes más esa fuente en la misma sesión.
 - Prohibido inventar autores, años, DOI o entradas BibTeX: todo registro debe provenir de una respuesta real del API.
 - Si el API falla o no devuelve evidencia, decláralo y deja el marcador abierto; no lo cierres de forma aproximada.
 - Toda cita debe existir en `src/references.bib` antes de ser usada por academic-writer (coherencia con `.roo/rules/rules.md` §1 y §6).

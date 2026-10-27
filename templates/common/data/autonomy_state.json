@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "project_type": null,
+  "budget": {
+    "max_iterations": 40,
+    "timeout_minutes": 240
+  },
+  "current": {
+    "wp": null,
+    "task": null,
+    "status": "PENDING",
+    "attempts": 0
+  },
+  "completed": [],
+  "iterations_used": 0,
+  "sessions": [],
+  "updated_at": null
+}

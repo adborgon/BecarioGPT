@@ -1,6 +1,6 @@
 # REGLAS GLOBALES DE RIGOR CIENTÍFICO Y ACADÉMICO
 
-Actúas dentro de un entorno de investigación científica e ingeniería. Todas tus respuestas y ediciones de archivos deben cumplir estrictamente estas directivas:
+Actúas dentro de un entorno de investigación científica e ingeniería. Estas directivas comprenden el rigor científico y académico (§1-§6) y el ciclo de autonomía del motor WP-driven (§7). Todas tus respuestas y ediciones de archivos deben cumplirlas estrictamente:
 
 ## 1. Integridad Bibliográfica (Tolerancia Cero a la Alucinación)
 - NUNCA inventes una referencia bibliográfica, autor, año, DOI o clave BibTeX.
@@ -41,3 +41,24 @@ Actúas dentro de un entorno de investigación científica e ingeniería. Todas 
 - `lit-synthesizer` registra cada artículo antes de devolver claves: evidencia (DOI/URL + fecha de acceso) en `context/evidence_notes.md` y entrada BibTeX verificada en `src/references.bib`.
 - Respeta los rate limits: Semantic Scholar ~1 petición/segundo (ante HTTP 429 espera 15-20 segundos antes de reintentar), arXiv ~1 petición cada 3 segundos y NCBI/PubMed ~3 peticiones/segundo (hasta 10 con `NCBI_API_KEY` en el entorno). CrossRef usa el API oficial api.crossref.org con un uso educado (evita ráfagas de peticiones que provoquen 402/429); la variable opcional `CROSSREF_MAILTO` (polite pool) se define solo como variable de entorno del sistema, JAMÁS en ficheros trackeados.
 - OpenAlex fue descartada como fuente por decisión del usuario: no está integrada ni se planifica su integración.
+
+## 7. Ciclo de autonomía (motor WP-driven)
+
+El avance en modo autónomo vive en tres ficheros: `data/autonomy_state.json` (espejo de estado), `context/autonomy_journal.md` (narrativa append-only) y `context/escalation_queue.md` (decisiones D3 para el investigador). `data/workpackages.yaml` sigue siendo el SSOT del plan: el orquestador NUNCA lo edita.
+
+- Bucle WP-driven: leer estado + journal + plan → elegir la siguiente tarea del WP corriente (respetando dependencias) → delegar UN paso por `new_task` al modo responsable con criterio de aceptación explícito → verificar el criterio (`test -s`, `grep`, `latexmk`) → checkpoint (append al journal + escritura atómica del estado) → repetir. Cada delegación `new_task` suma 1 iteración al presupuesto (`budget` en `data/autonomy_state.json`: por defecto 40 iteraciones / 240 min por sesión; configurable con `run_autonomy.sh --max-iterations / --timeout-minutes`).
+- Disciplina de checkpoint: NUNCA interrumpir una escritura SSOT a mitad. El checkpoint se hace antes y después de cada paso, con el proyecto en estado estable.
+- Clasificación de decisiones: D1 operativa (reversible, sin impacto científico) la resuelve el modo delegado; D2 metodológica reversible se resuelve y se documenta en `context/autonomy_journal.md`; D3 de fondo (hipótesis nuevas, cambio de alcance o diseño, presupuesto, autoría o envío) SOLO la decide el investigador: se registra en `context/escalation_queue.md` (fila `| ESC-NNN | ... | ABIERTO |`) y el WP afectado queda BLOCKED. Mientras haya filas ABIERTAS, el supervisor `run_autonomy.sh` NO relanza sesiones.
+- El supervisor `run_autonomy.sh` aplica el presupuesto duro (timeout por sesión con `timeout` de GNU coreutils si existe), impide relanzar con escalaciones abiertas y, sin CLI headless, degrada a modo manual imprimiendo el prompt de continuación. El journal y el estado los edita el agente, NUNCA el script.
+- El freno anti-alucinación (§1, §2 y §5) permanece íntegro en modo autónomo: sin evidencia o dato registrado en el repositorio, ningún marcador `\todo{}` se cierra.
+
+### Backoff por fuente (obligatorio para todas las búsquedas de `lit-synthesizer`)
+
+| Fuente | Cortesía previa | Ante error / HTTP 429 | Máx. intentos | Al agotar |
+|---|---|---|---|---|
+| `semantic-scholar-mcp` | ~1 petición/segundo | esperar 20 s, 40 s, 80 s, 160 s | 4 | ESCALADO (D1 en `escalation_queue.md`) + marcador `\todo{CITA REQUERIDA}` abierto (§5) |
+| `arxiv` | 3 s entre peticiones | esperar 10 s, 30 s, 90 s | 3 | ESCALADO (D1) + marcador abierto |
+| `pubmedmcp` | ~3 peticiones/segundo (hasta 10 con `NCBI_API_KEY`) | esperar 10 s, 30 s | 3 | ESCALADO (D1) + marcador abierto |
+| `crossref` | uso educado (sin ráfagas que provoquen 402/429) | esperar 5 s, 15 s, 45 s | 3 | el marcador permanece abierto: NUNCA se cierra aproximando (§5) |
+
+Regla transversal: tras agotar los reintentos de una fuente, registra el bloqueo y deja el marcador `\todo{}` abierto; no reintentes más esa fuente en la misma sesión (evita quemar presupuesto en una fuente caída). Las claves (`SEMANTIC_SCHOLAR_API_KEY`, `NCBI_API_KEY`, `CROSSREF_MAILTO`) viajan solo como variables de entorno del sistema, JAMÁS en ficheros trackeados.

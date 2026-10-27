@@ -2,7 +2,7 @@
 
 BecarioGPT es un repositorio base para la **redacción de artículos científicos (IMRaD)** y la **preparación de propuestas de proyectos de investigación competitivos** con asistentes de IA basados en agentes (Zoo Code / Roo Code).
 
-Su único contenido ejecutable es `init_paper.sh`: un script que genera la estructura inicial de cada proyecto de paper (LaTeX + workflow de investigación) **según el tipo de contribución** (`--type`: `imrad` por defecto, `prisma`, `thesis` o `engineering`) y copia a cada proyecto la configuración de agentes de este repo (`.roomodes`, `.roo/rules/`, `.roo/skills/` y la configuración MCP trackeada `templates/common/mcp.json` → `.roo/mcp.json` del proyecto).
+Su único contenido ejecutable es `init_paper.sh`: un script que genera la estructura inicial de cada proyecto de paper (LaTeX + workflow de investigación) **según el tipo de contribución** (`--type`: `imrad` por defecto, `prisma`, `thesis` o `engineering`) y copia a cada proyecto la configuración de agentes de este repo (`.roomodes`, `.roo/rules/`, `.roo/skills/` y la configuración MCP trackeada `templates/common/mcp.json` → `.roo/mcp.json` del proyecto). Cada proyecto incluye además el **motor de autonomía (F4)**: el 5º modo `academic-orchestrator` (bucle WP-driven con checkpoints por paso y escalado D1-D3) y el supervisor `run_autonomy.sh` (presupuesto duro, gate de escalaciones y modo manual).
 
 El sistema está diseñado bajo el principio de **Separación de Responsabilidades y Single Source of Truth (SSOT)** para evitar alucinaciones bibliográficas, desajustes metodológicos y errores de formato.
 
@@ -16,9 +16,9 @@ El sistema está diseñado bajo el principio de **Separación de Responsabilidad
 ├── README.md                  # Esta documentación
 ├── AGENTS.md                  # Guía técnica para agentes de código
 ├── .gitignore                 # Ignora .roo/mcp.json (config MCP local), __pycache__/, *.pyc y rag/cache/
-├── .roomodes                  # Definición de los 4 modos académicos (se copia a cada proyecto)
+├── .roomodes                  # Definición de los 5 modos académicos (se copia a cada proyecto)
 ├── templates/                 # Catálogo de plantillas por tipo de proyecto (con postcheck.list por tipo)
-│   ├── common/                # SSOT comunes a todos los tipos (postcheck.list común + mcp.json trackeada, sin claves)
+│   ├── common/                # SSOT comunes a todos los tipos (postcheck.list común + mcp.json trackeada, sin claves + artefactos de autonomía: autonomy_state.json, autonomy_journal.md, escalation_queue.md, run_autonomy.sh)
 │   ├── imrad/                 # Artículo empírico IMRaD (tipo por defecto)
 │   ├── prisma/                # Revisión sistemática PRISMA 2020
 │   ├── thesis/                # Tesis/TFG/TFM por capítulos (clase report)
@@ -34,8 +34,8 @@ El sistema está diseñado bajo el principio de **Separación de Responsabilidad
 │   ├── mcp.json               # Configuración MCP LOCAL de este repo (gitignoreada; puede contener claves; JAMÁS se commitea)
 │   └── skills/                # 8 skills de agentes (se copian a cada proyecto)
 ├── tests/
-│   └── scaffold_smoke.sh      # Suite de humo: post-condición, noclobber, seguridad MCP, retrocompatibilidad
-├── plans/                     # Diseño de evolución del repo (roadmap: queda F4, motor de autonomía)
+│   └── scaffold_smoke.sh      # Suite de humo: post-condición, noclobber, seguridad MCP, retrocompatibilidad y supervisor F4 en seco
+├── plans/                     # Diseño de evolución del repo (roadmap F0-F4 completo)
 ├── context/                   # Estado de investigación del repo (matrices SSOT de trabajo)
 ├── data/                      # Datos estructurados del repo
 └── rag/                       # Base de conocimiento local (RAG)
@@ -59,16 +59,20 @@ nombre-del-proyecto/
 ├── context/
 │   ├── call_guidelines.md     # Requisitos de la revista/convocatoria (SSOT)
 │   ├── hypothesis_matrix.md   # Objetivos, hipótesis y variables (SSOT, con Changelog)
-│   └── evidence_notes.md      # Registro de evidencia (con DOI + fecha de acceso)
+│   ├── evidence_notes.md      # Registro de evidencia (con DOI + fecha de acceso)
+│   ├── autonomy_journal.md    # Narrativa append-only del bucle de autonomía (eventos por paso)
+│   └── escalation_queue.md    # Decisiones D3 pendientes del investigador (filas ESC-NNN)
 ├── data/
 │   ├── stats_summary.json     # Nace parseable: project_type + study_metadata{design, n, preregistration_url} + variables
-│   └── workpackages.yaml      # Nace parseable, con un WP1 de ejemplo
+│   ├── workpackages.yaml      # Nace parseable, con un WP1 de ejemplo
+│   └── autonomy_state.json    # Espejo de estado del bucle WP-driven (budget 40 iter / 240 min, status PENDING)
 ├── src/
 │   ├── main.tex               # Documento raíz LaTeX compilable (esqueleto según el tipo)
 │   ├── references.bib         # Única base bibliográfica (solo la edita lit-synthesizer)
 │   └── figures/
 ├── reviews/
 │   └── peer_review_log.md     # Registro de auditoría (reviewer-2) con tabla y severidades
+├── run_autonomy.sh              # Supervisor del motor de autonomía: presupuesto, gate de escalaciones, modo manual
 ├── rag/
 │   ├── calls/                 # Estrategias de búsqueda y convocatorias
 │   ├── past_projects/
@@ -88,11 +92,11 @@ Sobre `src/`, cada tipo genera un esqueleto distinto (catálogo en `templates/`)
 
 La lista de tipos no está hard-codeada: se descubre de los subdirectorios de `templates/` (excluido `common/`); añadir un tipo nuevo es crear `templates/<tipo>/` con su `src/` y su `postcheck.list`.
 
-Antes de declarar el éxito, el script verifica con `test -f` todas las rutas listadas en `templates/common/postcheck.list` y en `templates/<tipo>/postcheck.list` (los seis ficheros del núcleo común: `src/main.tex`, `.roo/rules/00_academic_core.md`, `context/hypothesis_matrix.md`, `data/stats_summary.json`, `reviews/peer_review_log.md` y `.roo/mcp.json`). Si falta alguna, termina con `[ERROR]` y `exit 1`.
+Antes de declarar el éxito, el script verifica con `test -f` todas las rutas listadas en `templates/common/postcheck.list` y en `templates/<tipo>/postcheck.list` (los diez ficheros del núcleo común: `src/main.tex`, `.roo/rules/00_academic_core.md`, `context/hypothesis_matrix.md`, `data/stats_summary.json`, `reviews/peer_review_log.md`, `.roo/mcp.json`, `data/autonomy_state.json`, `context/autonomy_journal.md`, `context/escalation_queue.md` y `run_autonomy.sh`). Si falta alguna, termina con `[ERROR]` y `exit 1`.
 
 ## 🤖 Modos y permisos
 
-Los 4 modos académicos están definidos en `.roomodes`. Cada uno restringe su edición con un `fileRegex`:
+Los 5 modos académicos están definidos en `.roomodes`. Cada uno restringe su edición con un `fileRegex`:
 
 | Modo | Ficheros editables (fileRegex) | Role |
 |------|-------------------------------|------|
@@ -100,19 +104,41 @@ Los 4 modos académicos están definidos en `.roomodes`. Cada uno restringe su e
 | 📚 Sintetizador Bibliográfico (`lit-synthesizer`) | `^(context/evidence_notes\.md\|src/references\.bib)$` | Único modo con acceso a los MCP `semantic-scholar-mcp`, `arxiv` (arxiv-mcp-server), `pubmedmcp` (PubMed/Europe PMC) y `crossref` (crossref-mcp-server): búsqueda sistemática de evidencia, registro en `evidence_notes.md` y gestión de BibTeX verificada en `references.bib`. Cierra los marcadores `\todo{CITA REQUERIDA}`. |
 | ✍️ Redactor Científico (`academic-writer`) | `^(src/.*\.(tex\|md)\|src/figures/.*)$` | Redacta el manuscrito LaTeX en `src/`. Prohibido editar `references.bib`: solo usa `\cite{clave}` de claves existentes o inserta `\todo{CITA REQUERIDA}`. Las búsquedas de artículos las delega a `lit-synthesizer` vía `new_task`. Al iniciar sesión, lee `reviews/peer_review_log.md` y subsana los hallazgos ABIERTOS. |
 | 🔍 Auditor Peer-Review (`reviewer-2`) | `^reviews/.*\.md$` | Solo lectura sobre `src/` y `context/`. Audita la coherencia, verifica los `\todo{}` con `grep` y registra hallazgos con severidad en `reviews/peer_review_log.md`. Las búsquedas de artículos las delega a `lit-synthesizer` vía `new_task`. Usa la checklist de `.roo/skills/peer-audit/SKILL.md`. |
+| 🧭 Orquestador de Autonomía (`academic-orchestrator`) | `^(data/autonomy_state\.json\|context/autonomy_journal\.md\|context/escalation_queue\.md\|rag/calls/.*)$` | Único consumidor del bucle WP-driven (F4): lee el plan (`workpackages.yaml`) y el espejo de estado, delega cada paso a los 4 modos académicos vía `new_task`, verifica el criterio de aceptación (`test -s`, `grep`, `latexmk`) y hace checkpoint por paso (journal + escritura atómica del estado). Sin grupo MCP: toda búsqueda la delega en `lit-synthesizer`. Las decisiones D3 van a `escalation_queue.md`. |
+
+## 🧭 Motor de autonomía (F4)
+
+Cada proyecto generado incluye el bucle WP-driven completo (contrato en §7 del marco académico `.roo/rules/00_academic_core.md`):
+
+- **Estado y narrativa**: `data/autonomy_state.json` (espejo de estado: `budget` 40 iteraciones / 240 min por defecto, `current.status`, `iterations_used`), `context/autonomy_journal.md` (narrativa append-only con eventos DELEGADO/VERIFICADO/FALLO/ESCALADO/CHECKPOINT/SESION_FIN) y `context/escalation_queue.md` (decisiones D3 para el investigador).
+- **Bucle**: el modo 🧭 Orquestador de Autonomía (`academic-orchestrator`) lee estado + journal + plan, elige la siguiente tarea del WP corriente, delega UN paso por `new_task` al modo responsable con criterio de aceptación explícito, verifica el criterio (`test -s`, `grep`, `latexmk`) y hace checkpoint por paso (journal + escritura atómica del estado; nunca a mitad de una escritura SSOT). Cada delegación suma 1 iteración al presupuesto. El plan (`data/workpackages.yaml`) NUNCA lo edita.
+- **Decisiones D1-D3**: D1 operativa la resuelve el modo delegado; D2 metodológica reversible se resuelve y se documenta en el journal; D3 de fondo (hipótesis nuevas, cambio de alcance o diseño, presupuesto, autoría o envío) SOLO la decide el investigador vía `context/escalation_queue.md` (fila `| ESC-NNN | ... | ABIERTO |`).
+- **Supervisor** `run_autonomy.sh` (en la raíz del proyecto): aplica el presupuesto duro (`--max-iterations`, `--timeout-minutes`), se niega a relanzar con escalaciones ABIERTAS (imprime la cola y sale con 0), degrada a **modo manual** imprimiendo el prompt de continuación si no hay CLI headless (`zoo`/`roo` en el PATH o forzada con `--cli`) y lanza sesiones con `timeout` de GNU coreutils si existe (si no, corre sin límite documentándolo). Tras cada sesión relee el estado y decide continuar o parar (presupuesto, escalación o bloqueo). Seguros internos: tope de sesiones = `--max-iterations` y parada si 3 sesiones consecutivas no dejan huella en el estado.
+- **Backoff por fuente** (§7): ante error/HTTP 429, Semantic Scholar espera 20/40/80/160 s (máx. 4), arXiv 10/30/90 s (máx. 3), PubMed 10/30 s (máx. 3) y CrossRef 5/15/45 s (máx. 3); al agotar, se registra D1 en `escalation_queue.md` y el marcador `\todo{}` queda abierto (nunca se cierra aproximando).
+
+**Lanzamiento** (Git Bash, dentro del proyecto generado):
+
+```bash
+bash run_autonomy.sh --dry-run                     # plan del supervisor sin lanzar nada
+bash run_autonomy.sh                               # MODO MANUAL si no hay zoo/roo en el PATH
+bash run_autonomy.sh --max-iterations 80 --timeout-minutes 300
+bash run_autonomy.sh --cli roo                     # CLI headless explícita
+```
+
+El journal y el estado los escribe el agente; el supervisor nunca los edita.
 
 ## 🛠️ Skills (`.roo/skills/`)
 
 | Skill | Modos | Descripción |
 |-------|-------|-------------|
-| `project-init` | research-architect | Onboarding guiado: diagnóstico de la estructura, interrogatorio al investigador y autogeneración asistida de matrices y ficheros iniciales. |
+| `project-init` | research-architect | Onboarding guiado: diagnóstico de la estructura, interrogatorio al investigador y autogeneración asistida de matrices y ficheros iniciales. Incluye el bootstrap de autonomía (F4): rellena `project_type` y presupuesto en `data/autonomy_state.json` y verifica `autonomy_journal.md` / `escalation_queue.md` operativos. |
 | `prisma-synthesis` | lit-synthesizer | Flujo PRISMA 2020 completo en 7 fases (F0-F6: protocolo, búsqueda, screening, extracción, riesgo de sesgo, síntesis con GRADE, checklist de 27 ítems) + variante narrativa (patrón CCLG) para el Estado del Arte. |
 | `methods-reporting` | academic-writer | Estructura obligatoria de la sección de Métodos, checklist EQUATOR según diseño (CONSORT, STROBE, TRIPOD+AI, CARE, STARD, PRISMA, SPIRIT), power analysis, pre-registro, datos faltantes, reproducibilidad y declaraciones (CRediT, COI). |
 | `grant-workpackages` | research-architect | Contrato y reglas de construcción de `data/workpackages.yaml` (WPs con objectives, deliverables, milestones, effort_pm, risks); el YAML debe permanecer parseable. |
 | `latex-tables` | academic-writer | Tablas con `booktabs` exclusivamente: sin líneas verticales ni `\hline`, convenciones numéricas y estadísticas, plantilla base. |
-| `peer-audit` | reviewer-2 | Checklist de auditoría en 6 fases (A1-A6): trazabilidad O/H, deuda `\todo`, integridad bibliográfica, fidelidad de datos, estilo y reporting EQUATOR. |
+| `peer-audit` | reviewer-2 | Checklist de auditoría en 6 fases (A1-A6): trazabilidad O/H, deuda `\todo`, integridad bibliográfica, fidelidad de datos, estilo y reporting EQUATOR. El visto bueno exige además 0 escalaciones ABIERTAS en `context/escalation_queue.md`. |
 | `style-defluff` | academic-writer | Purga de muletillas de IA con linter `grep` en dos pasadas, excepciones técnicas y jerarquía normativa (gana `rules.md`). |
-| `s2-search` | lit-synthesizer | Búsqueda y verificación de artículos vía el MCP `semantic-scholar-mcp` (fases S0-S6): `search_paper`, `get_paper` (verificación de DOI), `get_authors` y `get_citation` (bibtex). Fuentes adicionales: `arxiv` para preprints y campos CS/EE, `pubmedmcp` (`search_abstracts`) para biomedicina/PRISMA y `crossref` (`crossref_doi_lookup`, export BibTeX/RIS) para verificación independiente de DOI/metadata. |
+| `s2-search` | lit-synthesizer | Búsqueda y verificación de artículos vía el MCP `semantic-scholar-mcp` (fases S0-S6): `search_paper`, `get_paper` (verificación de DOI), `get_authors` y `get_citation` (bibtex). Fuentes adicionales: `arxiv` para preprints y campos CS/EE, `pubmedmcp` (`search_abstracts`) para biomedicina/PRISMA y `crossref` (`crossref_doi_lookup`, export BibTeX/RIS) para verificación independiente de DOI/metadata. Backoff por fuente (§7): al agotar reintentos, registra D1 en `escalation_queue.md` y deja el `\todo{}` abierto. |
 
 ## 🔄 Flujo de trabajo recomendado
 
@@ -153,9 +179,11 @@ El ciclo de deuda académica cierra los marcadores `\todo{}`:
 
 4. **Seguir el ciclo iterativo**: research-architect → lit-synthesizer → academic-writer → reviewer-2 (ver flujo anterior).
 
+5. **Opcional — Motor de autonomía (F4)**: ejecuta el bucle WP-driven con el supervisor: `bash run_autonomy.sh --dry-run` (plan en seco) y `bash run_autonomy.sh` (bucle; entra en MODO MANUAL si no hay CLI headless, o fuerza una con `--cli roo` / `--cli zoo`). Las decisiones D3 aparecen en `context/escalation_queue.md` y detienen el relanzamiento hasta que el investigador las resuelva (Estado → RESUELTO).
+
 ## ⚙️ Requisitos
 
-- **bash real** (Git Bash o WSL en Windows): el script usa `set -euo pipefail`; no funciona en sh/dash/cmd.exe.
+- **bash real** (Git Bash o WSL en Windows): `init_paper.sh` y `run_autonomy.sh` usan `set -euo pipefail`; no funcionan en sh/dash/cmd.exe.
 - Sin dependencias externas: solo usa binarios estándar (`mkdir`, `cp`, `cat`, `find`, `ls`, `printf`, `echo`, `test`, `dirname`).
 - Para el MCP `semantic-scholar-mcp` (búsquedas de `lit-synthesizer`): el servidor se arranca con `python -m uv tool run --from git+https://github.com/adborgon/semantic-scholar-mcp.git semantic-scholar-mcp serve`. Requiere `python` en el `PATH` con el paquete `uv` instalado (`pip install uv`); `uv tool run` cachea el paquete y NO reinstala en cada arranque (sin `--refresh-package`). El API admite ~1 petición/segundo: ante HTTP 429, esperar 15-20 s antes de reintentar.
 - Para el MCP `arxiv` (segunda fuente de `lit-synthesizer`): el servidor se arranca con `python -m uv tool run arxiv-mcp-server --storage-path ./rag/cache/papers` (~1 petición cada 3 s); su caché de papers vive en `rag/cache/papers` del proyecto.

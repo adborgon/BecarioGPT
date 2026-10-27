@@ -1,6 +1,6 @@
 ---
 name: peer-audit
-description: Activa esta skill cuando reviewer-2 deba auditar el manuscrito o el estado del repositorio antes de dar el visto bueno. Ejecuta la checklist de 6 fases (A1-A6) con sus verificaciones concretas, registra cada hallazgo en reviews/peer_review_log.md con severidad y solo aprueba si no quedan hallazgos [CRÍTICO - Bloqueante] abiertos.
+description: Activa esta skill cuando reviewer-2 deba auditar el manuscrito o el estado del repositorio antes de dar el visto bueno. Ejecuta la checklist de 6 fases (A1-A6) con sus verificaciones concretas, registra cada hallazgo en reviews/peer_review_log.md con severidad y solo aprueba si no quedan hallazgos [CRÍTICO - Bloqueante] abiertos ni escalaciones ABIERTAS en context/escalation_queue.md.
 modeSlugs:
   - reviewer-2
 ---
@@ -65,4 +65,4 @@ grep -Ein "delve|delving|tapestry|crucial|paramount|groundbreaking|revolution|re
 
 ## Norma de Cierre
 
-Solo se emite visto bueno con **0 hallazgos [CRÍTICO - Bloqueante] ABIERTOS**. Los [MAYOR] deben tener responsable y plan de cierre asignados en el log. Al reauditar, verifica que cada hallazgo RESUELTO lo está realmente (la evidencia o el dato correspondiente existe en el repositorio) antes de dar por cerrada la auditoría.
+Solo se emite visto bueno con **0 hallazgos [CRÍTICO - Bloqueante] ABIERTOS** y **0 escalaciones ABIERTAS** en `context/escalation_queue.md`: cada fila ABIERTA (decisión D3 pendiente del investigador) bloquea el visto bueno. Los [MAYOR] deben tener responsable y plan de cierre asignados en el log. Al reauditar, verifica que cada hallazgo RESUELTO lo está realmente (la evidencia o el dato correspondiente existe en el repositorio) antes de dar por cerrada la auditoría.

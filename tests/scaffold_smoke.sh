@@ -29,6 +29,13 @@
 #       los .tex del proyecto generado corresponde a un fichero existente.
 #   [8] Retrocompatibilidad (F2): generar sin --type produce exactamente la
 #       misma estructura y contenido que generar con --type imrad.
+#   [9] F4 - motor de autonomia: los 4 ficheros de autonomia (data/
+#       autonomy_state.json parseable, context/autonomy_journal.md,
+#       context/escalation_queue.md y run_autonomy.sh con bash -n limpio)
+#       presentes en cada tipo; el snapshot noclobber incluye autonomy_state.json
+#       y run_autonomy.sh; el dry-run del supervisor sin CLI sale por MODO
+#       MANUAL con exit 0 y, con una escalacion ABIERTA simulada, se niega a
+#       relanzar (exit 0 imprimiendo la cola).
 #
 # Diseno:
 #   - Parametrizable por tipo de proyecto: PROJECT_TYPES contiene el catalogo
@@ -254,6 +261,45 @@ check_yaml() {
 }
 
 # ------------------------------------------------------------------------------
+# [T] F4: ficheros de autonomia presentes y estado parseable
+# ------------------------------------------------------------------------------
+check_autonomy_files() {
+    # $1: proyecto; $2: tipo. Verifica los 4 ficheros de autonomia + bash -n
+    # del supervisor copiado.
+    _proj="$1"; _type="$2"
+    for _f in data/autonomy_state.json context/autonomy_journal.md context/escalation_queue.md run_autonomy.sh; do
+        if [ -s "$_proj/$_f" ]; then
+            t_ok "autonomia ($_type): existe y no esta vacio $_f"
+        else
+            record_fail "autonomia ($_type): falta o esta vacio $_f"
+        fi
+    done
+    if bash -n "$_proj/run_autonomy.sh" 2>/dev/null; then
+        t_ok "autonomia ($_type): run_autonomy.sh pasa bash -n."
+    else
+        record_fail "autonomia ($_type): run_autonomy.sh falla bash -n."
+    fi
+}
+
+check_state_json() {
+    # $1: data/autonomy_state.json del proyecto generado; $2: tipo.
+    _file="$1"; _type="$2"
+    if [ -n "$PYTHON_BIN" ]; then
+        if "$PYTHON_BIN" -c "import json,sys; d=json.load(open(sys.argv[1], encoding='utf-8')); assert d['schema_version']==1 and d['budget']['max_iterations']>0 and d['budget']['timeout_minutes']>0 and d['current']['status']=='PENDING' and isinstance(d['completed'], list) and isinstance(d['sessions'], list)" "$_file" > /dev/null 2>&1; then
+            t_ok "autonomy_state.json ($_type) parseable como JSON con estructura valida."
+        else
+            record_fail "autonomy_state.json ($_type) NO es JSON parseable o carece de la estructura minima."
+        fi
+    else
+        if [ -s "$_file" ] && grep -q '"schema_version"' "$_file" && grep -q '"current"' "$_file" && grep -q '"iterations_used"' "$_file"; then
+            t_warn "autonomy_state.json ($_type): python no disponible; validacion estructural minima."
+        else
+            record_fail "autonomy_state.json ($_type): estructura minima (schema_version/current/iterations_used) no encontrada."
+        fi
+    fi
+}
+
+# ------------------------------------------------------------------------------
 # [T] Consistencia LaTeX (F2): todo \input/\include debe existir en el proyecto
 # ------------------------------------------------------------------------------
 check_latex_consistency() {
@@ -345,6 +391,8 @@ snapshot_ssot() {
     cp "$_proj/.roo/rules/00_academic_core.md"   "$_snap/00_academic_core.md"
     cp "$_proj/.roomodes"                        "$_snap/roomodes"
     cp "$_proj/.roo/mcp.json"                    "$_snap/mcp.json"
+    cp "$_proj/data/autonomy_state.json"         "$_snap/autonomy_state.json"
+    cp "$_proj/run_autonomy.sh"                  "$_snap/run_autonomy.sh"
 }
 
 check_noclobber() {
@@ -358,6 +406,8 @@ check_noclobber() {
     _cmp_pair "$_snap/00_academic_core.md"  "$_proj/.roo/rules/00_academic_core.md" ".roo/rules/00_academic_core.md"
     _cmp_pair "$_snap/roomodes"             "$_proj/.roomodes"                      ".roomodes"
     _cmp_pair "$_snap/mcp.json"             "$_proj/.roo/mcp.json"                  ".roo/mcp.json"
+    _cmp_pair "$_snap/autonomy_state.json"  "$_proj/data/autonomy_state.json"       "data/autonomy_state.json"
+    _cmp_pair "$_snap/run_autonomy.sh"      "$_proj/run_autonomy.sh"                "run_autonomy.sh"
 }
 
 # ==============================================================================
@@ -402,6 +452,8 @@ for TYPE in "${PROJECT_TYPES[@]}"; do
     check_mcp_servers "$PROJ/.roo/mcp.json" "copiado al proyecto ($TYPE)"
     check_json "$PROJ/data/stats_summary.json"
     check_yaml "$PROJ/data/workpackages.yaml"
+    check_autonomy_files "$PROJ" "$TYPE"
+    check_state_json "$PROJ/data/autonomy_state.json" "$TYPE"
     check_latex_consistency "$PROJ" "$TYPE"
 
     check_run "$LOG_NOFORCE" 1 "re-ejecucion sin --force aborta ($TYPE)" "$PROJ" --type "$TYPE"
@@ -419,6 +471,57 @@ check_run "$TMP_ROOT/log-def.txt" 0 "generacion por defecto sin --type" "$PROJ_D
 check_postcondition "$PROJ_DEF" "imrad"
 check_latex_consistency "$PROJ_DEF" "default"
 check_same_tree "$PROJ_DEF" "$TMP_ROOT/proj-imrad" "default vs imrad"
+
+# ------------------------------------------------------------------------------
+# [9] F4: supervisor de autonomia (dry-run, MODO MANUAL sin CLI y gate de
+#     escalaciones ABIERTAS con exit 0 en ambos casos)
+# ------------------------------------------------------------------------------
+t_ok "=== F4: supervisor run_autonomy.sh ==="
+AUTO_PROJ="$TMP_ROOT/proj-imrad"
+LOG_MANUAL="$TMP_ROOT/log-auto-manual.txt"
+LOG_ESC="$TMP_ROOT/log-auto-escalation.txt"
+LOG_HELP="$TMP_ROOT/log-auto-help.txt"
+
+# (a) --help del supervisor: exit 0.
+set +e
+bash "$AUTO_PROJ/run_autonomy.sh" --help > "$LOG_HELP" 2>&1
+AUTO_RC=$?
+set -e
+if [ "$AUTO_RC" -eq 0 ] && grep -q 'Supervisor fino' "$LOG_HELP"; then
+    t_ok "run_autonomy --help: exit 0 con la ayuda."
+else
+    record_fail "run_autonomy --help: se esperaba exit 0 y se obtuvo $AUTO_RC."
+    cat "$LOG_HELP" >&2
+fi
+check_ascii "$LOG_HELP" "run_autonomy --help"
+
+# (b) Dry-run sin CLI (--cli apunta a un binario inexistente): MODO MANUAL con
+#     prompt de continuacion y exit 0.
+set +e
+bash "$AUTO_PROJ/run_autonomy.sh" --project "$AUTO_PROJ" --cli "no-hay-cli-f4-xyz" --dry-run > "$LOG_MANUAL" 2>&1
+AUTO_RC=$?
+set -e
+if [ "$AUTO_RC" -eq 0 ] && grep -q 'MODO MANUAL' "$LOG_MANUAL" && grep -q 'academic-orchestrator' "$LOG_MANUAL"; then
+    t_ok "run_autonomy dry-run sin CLI: MODO MANUAL con prompt y exit 0."
+else
+    record_fail "run_autonomy dry-run sin CLI: se esperaba exit 0 con MODO MANUAL y prompt (rc=$AUTO_RC)."
+    cat "$LOG_MANUAL" >&2
+fi
+check_ascii "$LOG_MANUAL" "run_autonomy dry-run (modo manual)"
+
+# (c) Con una escalacion ABIERTA simulada: se niega a relanzar (exit 0, cola impresa).
+printf '| ESC-999 | 2026-01-01 00:00 | WP1 | D3 | Pregunta simulada por la suite de humo | Contexto simulado | | ABIERTO |\n' >> "$AUTO_PROJ/context/escalation_queue.md"
+set +e
+bash "$AUTO_PROJ/run_autonomy.sh" --project "$AUTO_PROJ" --cli "no-hay-cli-f4-xyz" --dry-run > "$LOG_ESC" 2>&1
+AUTO_RC=$?
+set -e
+if [ "$AUTO_RC" -eq 0 ] && grep -q 'ESCALACIONES ABIERTAS' "$LOG_ESC" && grep -q 'ESC-999' "$LOG_ESC"; then
+    t_ok "run_autonomy con escalacion ABIERTA: se niega a relanzar (exit 0 imprimiendo la cola)."
+else
+    record_fail "run_autonomy con escalacion ABIERTA: se esperaba exit 0 negandose a relanzar (rc=$AUTO_RC)."
+    cat "$LOG_ESC" >&2
+fi
+check_ascii "$LOG_ESC" "run_autonomy con escalacion ABIERTA"
 
 # ------------------------------------------------------------------------------
 # [4]-[5] -h/--help con exit 0 y rechazos de argumentos con exit 1
