@@ -156,6 +156,7 @@ Ejemplos:
   bash init_paper.sh mi-paper                     # tipo por defecto (imrad)
   bash init_paper.sh mi-revision --type prisma    # revision sistematica
   bash init_paper.sh mi-tesis --type thesis       # tesis/TFG/TFM
+  bash init_paper.sh mi-ppc --type grant          # propuesta competitiva/PPC
   bash init_paper.sh mi-paper --force             # completar sin sobrescribir
 USAGE_EOF
 }

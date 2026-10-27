@@ -1,0 +1,41 @@
+% main.tex - Documento raiz de la propuesta competitiva / PPC (memoria tecnica).
+% La estructura del documento la DICTA LA CONVOCATORIA: ajusta secciones,
+% orden y limites de paginas a las bases de la convocatoria (rag/calls/) y
+% verifica la cobertura en context/convocatoria_checklist.md. Compilar con
+% pdflatex + bibtex.
+\documentclass[12pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{booktabs}
+\usepackage{hyperref}
+
+% Marcadores academicos \todo{...} (ver .roo/rules/00_academic_core.md):
+% fallback compilable. Si anades el paquete todonotes, elimina esta linea.
+\providecommand{\todo}[1]{\textbf{[TODO: #1]}}
+
+\title{TODO: titulo de la propuesta (proyecto de colaboracion publico-privada)}
+\author{TODO: coordinador/a del consorcio}
+\date{TODO: fecha de envio}
+
+\begin{document}
+
+\maketitle
+
+% Resumen ejecutivo (seccion sin numerar): la estructura de 9 secciones es
+% orientativa; la convocatoria manda (context/convocatoria_checklist.md).
+\input{src/00_resumen}
+\input{src/01_contexto}
+\input{src/02_objetivos}
+\input{src/03_excellence}
+\input{src/04_impact}
+\input{src/05_wps}
+\input{src/06_consortium}
+\input{src/07_budget}
+\input{src/08_risks}
+
+\bibliographystyle{plain}
+\bibliography{src/references}
+
+\end{document}

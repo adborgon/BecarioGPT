@@ -1,0 +1,14 @@
+# Post-condicion del tipo grant (propuesta competitiva / PPC).
+# Rutas relativas a la raiz del proyecto; se anaden a las de common/.
+src/00_resumen.tex
+src/01_contexto.tex
+src/02_objetivos.tex
+src/03_excellence.tex
+src/04_impact.tex
+src/05_wps.tex
+src/06_consortium.tex
+src/07_budget.tex
+src/08_risks.tex
+data/consortium.yaml
+data/budget.yaml
+context/convocatoria_checklist.md

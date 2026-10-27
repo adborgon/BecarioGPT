@@ -36,6 +36,10 @@
 #       y run_autonomy.sh; el dry-run del supervisor sin CLI sale por MODO
 #       MANUAL con exit 0 y, con una escalacion ABIERTA simulada, se niega a
 #       relanzar (exit 0 imprimiendo la cola).
+#   [10] F5 - tipo grant: artefactos propios parseables cuando el tipo los
+#       define (data/consortium.yaml y data/budget.yaml como YAML; el resto
+#       de parseabilidad del tipo lo cubren los checks generales anteriores
+#       y la post-condicion parametrizada).
 #
 # Diseno:
 #   - Parametrizable por tipo de proyecto: PROJECT_TYPES contiene el catalogo
@@ -49,10 +53,10 @@
 set -euo pipefail
 
 # ------------------------------------------------------------------------------
-# [P] Parametros: tipos de proyecto a verificar (catalogo núcleo de F2;
+# [P] Parametros: tipos de proyecto a verificar (catalogo de F2 + F5: grant;
 #     extensible sin tocar el resto del test).
 # ------------------------------------------------------------------------------
-PROJECT_TYPES=("imrad" "prisma" "thesis" "engineering")
+PROJECT_TYPES=("imrad" "prisma" "thesis" "engineering" "grant")
 
 SCRIPT_DIR=$(cd "$(dirname "$0")/.." && pwd)
 INIT_SCRIPT="$SCRIPT_DIR/init_paper.sh"
@@ -260,6 +264,26 @@ check_yaml() {
     fi
 }
 
+check_yaml_file() {
+    # $1: fichero YAML del proyecto generado; $2: etiqueta descriptiva (F5).
+    # Parseabilidad completa con PyYAML; si no esta disponible, validacion
+    # estructural minima (existe y no esta vacio) marcada con [WARN].
+    _file="$1"; _label="$2"
+    if [ -n "$PYTHON_BIN" ] && "$PYTHON_BIN" -c "import yaml" > /dev/null 2>&1; then
+        if "$PYTHON_BIN" -c "import yaml,sys; yaml.safe_load(open(sys.argv[1], encoding='utf-8'))" "$_file" > /dev/null 2>&1; then
+            t_ok "$_label parseable como YAML (PyYAML)."
+        else
+            record_fail "$_label NO es YAML parseable."
+        fi
+    else
+        if [ -s "$_file" ]; then
+            t_warn "$_label: python/PyYAML no disponible; validacion estructural minima (existe y no esta vacio)."
+        else
+            record_fail "$_label: no existe o esta vacio."
+        fi
+    fi
+}
+
 # ------------------------------------------------------------------------------
 # [T] F4: ficheros de autonomia presentes y estado parseable
 # ------------------------------------------------------------------------------
@@ -452,6 +476,13 @@ for TYPE in "${PROJECT_TYPES[@]}"; do
     check_mcp_servers "$PROJ/.roo/mcp.json" "copiado al proyecto ($TYPE)"
     check_json "$PROJ/data/stats_summary.json"
     check_yaml "$PROJ/data/workpackages.yaml"
+   # F5: artefactos YAML propios del tipo (presentes solo en grant).
+   if [ -f "$PROJ/data/consortium.yaml" ]; then
+       check_yaml_file "$PROJ/data/consortium.yaml" "consortium.yaml ($TYPE)"
+   fi
+   if [ -f "$PROJ/data/budget.yaml" ]; then
+       check_yaml_file "$PROJ/data/budget.yaml" "budget.yaml ($TYPE)"
+   fi
     check_autonomy_files "$PROJ" "$TYPE"
     check_state_json "$PROJ/data/autonomy_state.json" "$TYPE"
     check_latex_consistency "$PROJ" "$TYPE"

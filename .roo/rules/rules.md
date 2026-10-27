@@ -62,3 +62,18 @@ El avance en modo autónomo vive en tres ficheros: `data/autonomy_state.json` (e
 | `crossref` | uso educado (sin ráfagas que provoquen 402/429) | esperar 5 s, 15 s, 45 s | 3 | el marcador permanece abierto: NUNCA se cierra aproximando (§5) |
 
 Regla transversal: tras agotar los reintentos de una fuente, registra el bloqueo y deja el marcador `\todo{}` abierto; no reintentes más esa fuente en la misma sesión (evita quemar presupuesto en una fuente caída). Las claves (`SEMANTIC_SCHOLAR_API_KEY`, `NCBI_API_KEY`, `CROSSREF_MAILTO`) viajan solo como variables de entorno del sistema, JAMÁS en ficheros trackeados.
+
+## 8. Conocimiento local (`rag/`)
+
+El proyecto tiene una base de conocimiento local de INTAKE (material que sube el investigador). Cada directorio tiene su `README.md` con la convención de nombres (`YYYY_fuente_titulo.md|pdf`; MD preferido, PDF aceptable) y el agente responsable:
+
+| Directorio | Contenido | Lo usa (principal) | Para qué |
+|---|---|---|---|
+| `rag/calls/` | Convocatoria vigente: PDF/bases, criterios con pesos, formularios y notas del usuario | research-architect | Extraer requisitos → `context/convocatoria_checklist.md`, resumen operativo → `context/call_guidelines.md`, plazos → `data/workpackages.yaml` |
+| `rag/past_projects/` | Proyectos parecidos y memorias previas del laboratorio/consorcio | research-architect (estructura de consorcio/laboratorio) y lit-synthesizer (pistas de estado del arte) | Estructura de consorcio, WPs e indicadores; el estado del arte se cita solo tras verificarlo en las 4 fuentes MCP (§6) |
+| `rag/templates/` | Memorias de convocatorias anteriores y guías de estilo del organismo | research-architect (estructura de la convocatoria) y academic-writer (estilo de escritura) | Aprender estructura y estilo que puntúan; los informes de evaluación previos alimentan la auditoría |
+
+Reglas duras:
+
+1. **Re-verificación SSOT**: todo dato procedente de un proyecto o memoria anterior (cifras, importes, capacidades, resultados) debe re-verificarse contra el SSOT actual (`data/`, `context/`) antes de usarse. PROHIBIDO presentar un dato antiguo como actual sin re-verificación; si no puede re-verificarse, marcador `\todo{DATO PENDIENTE}` (§5).
+2. **Estilo sí, texto no**: PROHIBIDO copiar texto verbatim de memorias ajenas (plagio). Imitar estructura y estilo es legítimo; el texto ajeno no. Los requisitos de la convocatoria solo se registran desde material real en `rag/calls/`: nunca de memoria.

@@ -1,0 +1,21 @@
+# consortium.yaml - Consorcio de la propuesta (SSOT del tipo grant).
+# El modo research-architect edita este fichero (con los datos que aporte el
+# investigador); academic-writer DERIVA la seccion de consorcio (src/
+# 06_consortium.tex) de aqui. Los valores "PENDIENTE: ..." se sustituyen por
+# los datos reales: JAMAS inventar entidades, personas ni capacidades.
+
+consorcio:
+  nombre: "PENDIENTE: nombre del consorcio"
+  coordinador: "PENDIENTE: entidad coordinadora"
+  duracion_meses: "PENDIENTE: duracion de la convocatoria"
+
+# Cada entidad: nombre, tipo (public|private), rol, PI y capacidades.
+# La dedicacion del PI cuadra con los effort_pm de data/workpackages.yaml.
+entidades:
+  - nombre: "PENDIENTE: entidad 1"
+    tipo: "PENDIENTE: public|private"
+    rol: "PENDIENTE: rol en el proyecto (coordinador, socio investigador, socio privado, ...)"
+    pi: "PENDIENTE: persona de contacto / PI"
+    pi_dedicacion_pm: "PENDIENTE: dedicacion en persona-mes"
+    capacidades:
+      - "PENDIENTE: infraestructura, equipamiento o experiencia relevante"

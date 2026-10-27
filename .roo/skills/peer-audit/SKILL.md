@@ -1,6 +1,6 @@
 ---
 name: peer-audit
-description: Activa esta skill cuando reviewer-2 deba auditar el manuscrito o el estado del repositorio antes de dar el visto bueno. Ejecuta la checklist de 6 fases (A1-A6) con sus verificaciones concretas, registra cada hallazgo en reviews/peer_review_log.md con severidad y solo aprueba si no quedan hallazgos [CRÍTICO - Bloqueante] abiertos ni escalaciones ABIERTAS en context/escalation_queue.md.
+description: Activa esta skill cuando reviewer-2 deba auditar el manuscrito o el estado del repositorio antes de dar el visto bueno. Ejecuta la checklist de 7 fases (A1-A7) con sus verificaciones concretas, registra cada hallazgo en reviews/peer_review_log.md con severidad y solo aprueba si no quedan hallazgos [CRÍTICO - Bloqueante] abiertos ni escalaciones ABIERTAS en context/escalation_queue.md (en grant, tampoco requisitos de convocatoria sin cubrir, A7).
 modeSlugs:
   - reviewer-2
 ---
@@ -63,6 +63,13 @@ grep -Ein "delve|delving|tapestry|crucial|paramount|groundbreaking|revolution|re
 3. Verifica los ítems de esa checklist en `src/`; ítem no cubierto → [MAYOR].
 4. `study_metadata.design` ausente → [MAYOR]: solicita a research-architect su registro.
 
+## A7 — Cobertura de la convocatoria (solo grant)
+
+1. Aplica SOLO a proyectos grant (`study_metadata.design` con prefijo `grant_proposal` en `data/stats_summary.json`); los demás tipos no ejecutan A7. En grant, A6 (EQUATOR) NO aplica (ver `.roo/skills/methods-reporting/SKILL.md`): la estructura la dicta la convocatoria.
+2. Lee `context/convocatoria_checklist.md` y verifica requisito a requisito que la sección indicada aborda lo que las bases exigen: requisito PENDIENTE (sin sección que lo cubra) → [MAYOR]; requisito marcado CUBIERTO pero no ajustado a las bases → [CRÍTICO - Bloqueante].
+3. Verifica que la checklist procede de material REAL de la convocatoria (`rag/calls/`): requisitos inventados o recordados de memoria → [CRÍTICO - Bloqueante].
+4. Registra cada requisito sin cubrir como hallazgo A7.x en `reviews/peer_review_log.md`, vinculándolo a su fila de la checklist.
+
 ## Norma de Cierre
 
-Solo se emite visto bueno con **0 hallazgos [CRÍTICO - Bloqueante] ABIERTOS** y **0 escalaciones ABIERTAS** en `context/escalation_queue.md`: cada fila ABIERTA (decisión D3 pendiente del investigador) bloquea el visto bueno. Los [MAYOR] deben tener responsable y plan de cierre asignados en el log. Al reauditar, verifica que cada hallazgo RESUELTO lo está realmente (la evidencia o el dato correspondiente existe en el repositorio) antes de dar por cerrada la auditoría.
+Solo se emite visto bueno con **0 hallazgos [CRÍTICO - Bloqueante] ABIERTOS**, **0 escalaciones ABIERTAS** en `context/escalation_queue.md` y, **en proyectos grant, 0 requisitos sin cubrir de `context/convocatoria_checklist.md`** (todo requisito PENDIENTE es hallazgo [MAYOR] bloqueante del visto bueno, A7): cada fila ABIERTA (decisión D3 pendiente del investigador) bloquea el visto bueno. Los [MAYOR] deben tener responsable y plan de cierre asignados en el log. Al reauditar, verifica que cada hallazgo RESUELTO lo está realmente (la evidencia o el dato correspondiente existe en el repositorio) antes de dar por cerrada la auditoría.

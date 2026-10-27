@@ -1,0 +1,10 @@
+{
+  "project_type": "grant",
+  "study_metadata": {
+    "design": "grant_proposal (public_private_collaboration)",
+    "n": null,
+    "preregistration_url": "PENDIENTE (registro de la convocatoria o del protocolo, si existe)"
+  },
+  "variables": [],
+  "notes": "Propuesta competitiva / PPC: NO hay datos de estudio que reportar en src/. Toda cifra economica vive en data/budget.yaml, el consorcio en data/consortium.yaml y el plan en data/workpackages.yaml; la cobertura de requisitos se audita en context/convocatoria_checklist.md (peer-audit A7). Introducir en 'variables' solo datos ya aportados por el investigador."
+}

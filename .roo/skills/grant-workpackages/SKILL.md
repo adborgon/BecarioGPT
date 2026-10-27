@@ -26,11 +26,12 @@ workpackages:
 
 1. **Trazabilidad con objetivos:** cada objetivo o hipótesis de `context/hypothesis_matrix.md` (O1..On, H1..Hn) debe mapearse a al menos un WP; cita los IDs explícitos en el campo `objectives`. Antes de dar por cerrado el fichero, verifica la cobertura ID a ID.
 2. **Entregables verificables:** cada `deliverable` debe poder aceptarse o rechazarse; vincula un criterio de aceptación medible (documento entregable, prototipo funcional, resultado registrado en `data/stats_summary.json`, sección de `src/`).
-3. **Hitos con dependencias:** cada `milestone` declara de qué WP o hito previo depende y en qué mes del proyecto se prevé alcanzarlo, según la duración indicada en `context/call_guidelines.md`.
+3. **Hitos con dependencias:** cada `milestone` declara de qué WP o hito previo depende y en qué mes del proyecto se prevé alcanzarlo, según la duración indicada en `context/call_guidelines.md`. **En grant, los hitos CASAN con los plazos de la convocatoria** (presentación, inicio admitido, hitos intermedios y final): si las bases no definen calendario, escala D1 en `context/escalation_queue.md` en lugar de suponerlo.
 4. **Esfuerzo coherente:** los `effort_pm` deben sumar un total realista y no duplicar el esfuerzo del mismo personal en WPs paralelos; documenta los supuestos de asignación.
 5. **Riesgos completos:** cada riesgo declara descripción, probabilidad, impacto y mitigación. No se admiten riesgos sin mitigación.
 6. **YAML siempre parseable:** tras cada edición valida que el fichero sigue siendo YAML válido (p. ej. `python -c "import yaml; yaml.safe_load(open('data/workpackages.yaml', encoding='utf-8'))"`). Un YAML roto bloquea al resto de agentes; si una edición no puede validarse, reviértela.
-7. **No inventar convocatoria:** presupuesto, duración y fechas del calendario proceden de `context/call_guidelines.md`. Si no constan ahí, déjalos como valores pendientes documentados (`todo: ...`) y genera en la memoria correspondiente `\todo{DATO PENDIENTE: [dato de la convocatoria]}`; nunca inventes cifras de presupuesto ni fechas.
+7. **No inventar convocatoria:** presupuesto, duración y fechas del calendario proceden de `context/call_guidelines.md`. Si no constan ahí, déjalos como valores pendientes documentados (`todo: ...`) y genera en la memoria correspondiente `\todo{DATO PENDIENTE: [dato de la convocatoria]}`; nunca inventes cifras de presupuesto ni fechas. En grant, los importes viven en `data/budget.yaml` y las cifras del SSOT las rellena solo el investigador.
+8. **KPI de impacto a su sección:** los indicadores de impacto (KPIs) se registran en `context/hypothesis_matrix.md` y se reportan en `src/04_impact.tex` (explotación y divulgación); los entregables técnicos permanecen como entregables de WP. El estado del arte de la memoria se apoya en `rag/past_projects/` (contexto) + las 4 fuentes MCP (evidencia citable, reglas §6).
 
 ## Flujo de Trabajo
 

@@ -1,0 +1,29 @@
+# budget.yaml - Presupuesto de la propuesta (SSOT del tipo grant).
+# El modo research-architect edita este fichero SOLO con importes aportados
+# por el investigador o definidos en las bases de la convocatoria
+# (context/call_guidelines.md). Las secciones src/07_budget.tex DERIVAN de
+# aqui: JAMAS inventar euros. Mientras no haya dato real, los importes se
+# quedan como "PENDIENTE".
+
+presupuesto:
+  moneda: "EUR"
+  categorias:
+    personal:
+      importe: "PENDIENTE"
+      descripcion: "Personal contratado y dedicaciones del equipo"
+    costes_externos:
+      importe: "PENDIENTE"
+      descripcion: "Subcontrataciones, servicios y viajes"
+    equipamiento:
+      importe: "PENDIENTE"
+      descripcion: "Equipos e infraestructura"
+    costes_indirectos:
+      importe: "PENDIENTE"
+      descripcion: "Segun las bases de la convocatoria (maximo y reglas en context/call_guidelines.md)"
+  total: "PENDIENTE"
+
+# Cofinanciacion o aportacion en especie del socio privado, si las bases lo
+# exigen. Pendiente de decision del investigador.
+aportacion_privada:
+  importe: "PENDIENTE"
+  modalidad: "PENDIENTE: cofinanciacion|especie|no aplica"

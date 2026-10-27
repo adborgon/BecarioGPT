@@ -13,7 +13,7 @@ Cuando el usuario invoque esta skill tras generar el scaffold con `init_paper.sh
 
 ## Paso 1: Verificación post-generación (sin crear nada)
 1. Comprueba la post-condición parametrizada del scaffold: TODAS las rutas listadas en `templates/common/postcheck.list` y en `templates/<tipo>/postcheck.list` del repositorio base (núcleo común + overlay del `--type` usado al generar) existen y no están vacíos en el proyecto. El tipo generado lo indica el campo `project_type` de `data/stats_summary.json`; si se desconoce, dedúcelo de ahí o pregúntalo al usuario antes de re-ejecutar. Como mínimo (ficheros comunes), deben existir y no estar vacíos `src/main.tex`, `.roo/rules/00_academic_core.md`, `context/hypothesis_matrix.md`, `data/stats_summary.json`, `reviews/peer_review_log.md`, `.roo/mcp.json`, `data/autonomy_state.json`, `context/autonomy_journal.md`, `context/escalation_queue.md` y `run_autonomy.sh`.
-2. Verifica que `.roo/rules/00_academic_core.md` contiene el marco íntegro: las 7 secciones (integridad bibliográfica, fidelidad de datos, tono anti-fluff, trazabilidad SSOT, ciclo de cierre de deuda académica con marcadores `\todo{}`, búsqueda de artículos vía MCP y ciclo de autonomía).
+2. Verifica que `.roo/rules/00_academic_core.md` contiene el marco íntegro: las 8 secciones (integridad bibliográfica, fidelidad de datos, tono anti-fluff, trazabilidad SSOT, ciclo de cierre de deuda académica con marcadores `\todo{}`, búsqueda de artículos vía MCP, ciclo de autonomía y conocimiento local `rag/`).
 3. Si falta o está incompleto algún elemento, indica al usuario re-ejecutar `bash init_paper.sh <proyecto> --force` (completa sin sobrescribir). NO reconstruyas ficheros a mano.
 
 ## Paso 2: Interrogatorio guiado al investigador
@@ -27,6 +27,16 @@ Pregunta al usuario de forma clara y directa. Los datos de hipótesis, variables
 1. Rellena la cabecera de `context/call_guidelines.md`: revista/convocatoria, tipo de contribución, alcance y temáticas, criterios de evaluación y límites de formato (con fecha de consulta AAAA-MM-DD).
 2. Añade la PRIMERA fila de `context/hypothesis_matrix.md`: IDs (O1, H1), variables y métricas, exclusivamente con los datos aportados en el Paso 2; si falta un dato, deja el marcador `\todo{DATO PENDIENTE: [metrica]}` en lugar de inventarlo.
 3. Registra la estrategia de búsqueda inicial en `rag/calls/` (p. ej. `rag/calls/search_strategy.md`): fuentes, consultas previstas, criterios de inclusión/exclusión y fecha.
+
+## Paso 3-bis: Rama grant (solo proyectos grant / PPC)
+
+Si el proyecto es una propuesta competitiva (`--type grant`; `project_type: "grant"` en `data/stats_summary.json`), añade a los pasos anteriores:
+
+1. **Capturar la convocatoria**: pide al investigador el PDF o la URL de las bases y deposítalos en `rag/calls/` (convención de nombres `YYYY_fuente_titulo.md|pdf` en su README). Sin convocatoria real subida, NO se registran requisitos: se escala (D1) pidiéndosela.
+2. **Checklist de convocatoria**: rellena `context/convocatoria_checklist.md` requisito a requisito desde las bases (ID, sección donde se aborda, peso y estado PENDIENTE); ajusta las filas orientativas del scaffold a los requisitos EXACTOS de la convocatoria.
+3. **Bootstrap de consorcio y presupuesto**: rellena `data/consortium.yaml` (entidades, tipo public/private, rol, PI, capacidades) y `data/budget.yaml` (categorías: personal, costes externos, equipamiento, costes indirectos, total; y aportación privada si las bases la exigen) con los datos que dé el investigador; donde falte dato, déjalo como `"PENDIENTE: ..."`/`"PENDIENTE"` — NUNCA inventes nombres ni euros.
+4. **Duración y calendario**: registra la duración de la convocatoria en `context/call_guidelines.md` y derivará los plazos de los hitos de `data/workpackages.yaml` (grant-workpackages); si la convocatoria no define calendario, escalado D1.
+5. **Intake de referencia**: pide al investigador proyectos parecidos (`rag/past_projects/`) y memorias de convocatorias anteriores (`rag/templates/`) para estructura de consorcio, estado del arte contextual y estilo de escritura (reglas §8: re-verificación SSOT y estilo sí, texto no).
 
 ## Paso 4: Bootstrap de autonomía (F4)
 1. Inicializa `data/autonomy_state.json`: confirma que el JSON es parseable y que contiene `schema_version`, `budget` y `current`; fija `project_type` leyéndolo de `data/stats_summary.json` (la plantilla nace con `null` y el scaffold no interpola) y ajusta `budget` (`max_iterations`, `timeout_minutes`) al que pida el investigador; por defecto, el de la plantilla (40 iteraciones / 240 min por sesión).

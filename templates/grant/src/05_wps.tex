@@ -1,0 +1,43 @@
+% 05_wps.tex - Implementacion: WPs, tareas, entregables, hitos y Gantt.
+\section{Plan de implementacion}
+% SSOT del plan: data/workpackages.yaml (lo edita research-architect con la
+% skill grant-workpackages). Esta seccion DERIVA del YAML: prohibido cambiar
+% estructura o cifras aqui sin actualizar antes el YAML.
+
+\subsection{Paquetes de trabajo}
+% TODO: por cada WP del YAML: titulo, objetivos (IDs O1..On de
+% context/hypothesis_matrix.md), tareas y entregables con su criterio de
+% aceptacion. Los meses y plazos de los hitos CASAN con el calendario de la
+% convocatoria (context/call_guidelines.md): si la convocatoria no define
+% fecha, \todo{DATO PENDIENTE: [plazo de la convocatoria]}.
+
+\subsection{Entregables y hitos}
+% TODO: tabla resumen de entregables (id, descripcion, WP, criterio de
+% aceptacion) y de hitos (id, descripcion, dependencias, mes). Con booktabs
+% exclusivamente (skill latex-tables): sin lineas verticales ni \hline.
+
+\subsection{Gantt del proyecto}
+% Gantt derivado de data/workpackages.yaml (convention latex-tables: booktabs
+% puro, sin pgfgantt). Tn = tramos del calendario (trimestres o meses, segun
+% la duracion de la convocatoria): ajustar el numero de columnas a la
+% duracion real y marcar con X las celdas activas de cada WP. Duracion y
+% meses: SIEMPRE de context/call_guidelines.md; si no constan, marcador.
+\begin{table}[htbp]
+\centering
+\caption{Gantt de los paquetes de trabajo (derivado de data/workpackages.yaml).}
+\label{tab:gantt}
+\begin{tabular}{llccccc}
+\toprule
+WP & Titulo & T1 & T2 & T3 & T4 & T5 \\
+\midrule
+WP1 & TODO: titulo del WP1 & \todo{DATO PENDIENTE: meses de WP1} & & & & \\
+WP2 & TODO: titulo del WP2 & & & & & \\
+WP3 & TODO: titulo del WP3 & & & & & \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Gestion del proyecto}
+% TODO: organizacion (comite de direccion, coordinacion del consorcio,
+% seguimiento de entregables) y gestion de contingencias. En una PPC:
+% mecanismos de coordinacion publico-privada y toma de decisiones.

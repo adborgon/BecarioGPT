@@ -2,7 +2,7 @@
 
 BecarioGPT es un repositorio base para la **redacción de artículos científicos (IMRaD)** y la **preparación de propuestas de proyectos de investigación competitivos** con asistentes de IA basados en agentes (Zoo Code / Roo Code).
 
-Su único contenido ejecutable es `init_paper.sh`: un script que genera la estructura inicial de cada proyecto de paper (LaTeX + workflow de investigación) **según el tipo de contribución** (`--type`: `imrad` por defecto, `prisma`, `thesis` o `engineering`) y copia a cada proyecto la configuración de agentes de este repo (`.roomodes`, `.roo/rules/`, `.roo/skills/` y la configuración MCP trackeada `templates/common/mcp.json` → `.roo/mcp.json` del proyecto). Cada proyecto incluye además el **motor de autonomía (F4)**: el 5º modo `academic-orchestrator` (bucle WP-driven con checkpoints por paso y escalado D1-D3) y el supervisor `run_autonomy.sh` (presupuesto duro, gate de escalaciones y modo manual).
+Su único contenido ejecutable es `init_paper.sh`: un script que genera la estructura inicial de cada proyecto de paper (LaTeX + workflow de investigación) **según el tipo de contribución** (`--type`: `imrad` por defecto, `prisma`, `thesis`, `engineering` o `grant`) y copia a cada proyecto la configuración de agentes de este repo (`.roomodes`, `.roo/rules/`, `.roo/skills/` y la configuración MCP trackeada `templates/common/mcp.json` → `.roo/mcp.json` del proyecto). Cada proyecto incluye además el **motor de autonomía (F4)**: el 5º modo `academic-orchestrator` (bucle WP-driven con checkpoints por paso y escalado D1-D3) y el supervisor `run_autonomy.sh` (presupuesto duro, gate de escalaciones y modo manual), y el **sistema de conocimiento local RAG (F5)**: los 3 directorios de intake de `rag/` con su README y sus reglas (§8 del marco académico).
 
 El sistema está diseñado bajo el principio de **Separación de Responsabilidades y Single Source of Truth (SSOT)** para evitar alucinaciones bibliográficas, desajustes metodológicos y errores de formato.
 
@@ -22,7 +22,8 @@ El sistema está diseñado bajo el principio de **Separación de Responsabilidad
 │   ├── imrad/                 # Artículo empírico IMRaD (tipo por defecto)
 │   ├── prisma/                # Revisión sistemática PRISMA 2020
 │   ├── thesis/                # Tesis/TFG/TFM por capítulos (clase report)
-│   └── engineering/           # Paper de ingeniería / evaluación experimental
+│   ├── engineering/           # Paper de ingeniería / evaluación experimental
+│   └── grant/                 # Propuesta competitiva / PPC (memoria de 9 secciones)
 ├── .roo/
 │   ├── rules/
 │   │   └── rules.md           # Marco académico global (ÚNICO fichero de rules/ que el script copia a los proyectos, como 00_academic_core.md)
@@ -74,9 +75,9 @@ nombre-del-proyecto/
 │   └── peer_review_log.md     # Registro de auditoría (reviewer-2) con tabla y severidades
 ├── run_autonomy.sh              # Supervisor del motor de autonomía: presupuesto, gate de escalaciones, modo manual
 ├── rag/
-│   ├── calls/                 # Estrategias de búsqueda y convocatorias
-│   ├── past_projects/
-│   ├── templates/
+│   ├── calls/                 # Convocatoria vigente (intake; README.md con convención y uso)
+│   ├── past_projects/         # Proyectos parecidos y memorias previas (intake)
+│   ├── templates/             # Memorias de convocatorias anteriores y guías de estilo (intake)
 │   └── cache/papers/          # Caché de papers del servidor MCP arxiv
 └── .gitignore                 # LaTeX + Python/R
 ```
@@ -89,6 +90,7 @@ Sobre `src/`, cada tipo genera un esqueleto distinto (catálogo en `templates/`)
 | `prisma` | `article` | `01_introduction`, `02_methods` (protocolo, búsqueda, screening, extracción, riesgo de sesgo, síntesis), `03_results`, `04_discussion` | `data/extraction_sheet.csv` (hoja de extracción), `src/figures/prisma_flow.tex` (diagrama PRISMA como tabla), `context/prisma_checklist.md` (27 ítems) |
 | `thesis` | `report` | Capítulos con `\chapter` en `src/chapters/` (portada/índice/resumen, glosario, introducción → conclusiones) + `src/appendices/` | `context/thesis_outline.md` (capitulación SSOT) |
 | `engineering` | `article` | `01_introduction`, `02_related_work`, `03_architecture`, `04_implementation`, `05_evaluation` (tabla de experimentos `booktabs`), `06_conclusion` (con Limitations) + `src/appendices/` | — |
+| `grant` | `article` 12pt | `00_resumen` (resumen ejecutivo, sin numerar), `01_contexto` (contexto, estado del arte, oportunidad), `02_objetivos` (O1..On), `03_excellence`, `04_impact` (KPIs), `05_wps` (WPs, entregables, hitos y **Gantt booktabs**), `06_consortium`, `07_budget` (cifras `PENDIENTE` hasta que las dé el investigador), `08_risks` (riesgos, ética, seguridad) | `data/consortium.yaml` (consorcio SSOT), `data/budget.yaml` (presupuesto SSOT) y `context/convocatoria_checklist.md` (requisitos de la convocatoria con peso y estado) |
 
 La lista de tipos no está hard-codeada: se descubre de los subdirectorios de `templates/` (excluido `common/`); añadir un tipo nuevo es crear `templates/<tipo>/` con su `src/` y su `postcheck.list`.
 
@@ -100,7 +102,7 @@ Los 5 modos académicos están definidos en `.roomodes`. Cada uno restringe su e
 
 | Modo | Ficheros editables (fileRegex) | Role |
 |------|-------------------------------|------|
-| 📐 Arquitecto de Estructura (`research-architect`) | `^(context/.*\|data/.*\|rag/calls/.*)$` | Traduce ideas, hipótesis y requisitos de convocatoria en matrices de trazabilidad (`hypothesis_matrix.md`), paquetes de trabajo (`workpackages.yaml`) y estrategias de búsqueda (`rag/calls/`). Cierra los marcadores `\todo{DATO PENDIENTE}` registrando el dato en su ámbito. |
+| 📐 Arquitecto de Estructura (`research-architect`) | `^(context/.*\|data/.*\|rag/.*)$` | Traduce ideas, hipótesis y requisitos de convocatoria en matrices de trazabilidad (`hypothesis_matrix.md`), paquetes de trabajo (`workpackages.yaml`) y estrategias de búsqueda (`rag/calls/`); procesa TODO el intake de `rag/` (F5: convocatorias, proyectos parecidos y memorias previas). Cierra los marcadores `\todo{DATO PENDIENTE}` registrando el dato en su ámbito. |
 | 📚 Sintetizador Bibliográfico (`lit-synthesizer`) | `^(context/evidence_notes\.md\|src/references\.bib)$` | Único modo con acceso a los MCP `semantic-scholar-mcp`, `arxiv` (arxiv-mcp-server), `pubmedmcp` (PubMed/Europe PMC) y `crossref` (crossref-mcp-server): búsqueda sistemática de evidencia, registro en `evidence_notes.md` y gestión de BibTeX verificada en `references.bib`. Cierra los marcadores `\todo{CITA REQUERIDA}`. |
 | ✍️ Redactor Científico (`academic-writer`) | `^(src/.*\.(tex\|md)\|src/figures/.*)$` | Redacta el manuscrito LaTeX en `src/`. Prohibido editar `references.bib`: solo usa `\cite{clave}` de claves existentes o inserta `\todo{CITA REQUERIDA}`. Las búsquedas de artículos las delega a `lit-synthesizer` vía `new_task`. Al iniciar sesión, lee `reviews/peer_review_log.md` y subsana los hallazgos ABIERTOS. |
 | 🔍 Auditor Peer-Review (`reviewer-2`) | `^reviews/.*\.md$` | Solo lectura sobre `src/` y `context/`. Audita la coherencia, verifica los `\todo{}` con `grep` y registra hallazgos con severidad en `reviews/peer_review_log.md`. Las búsquedas de artículos las delega a `lit-synthesizer` vía `new_task`. Usa la checklist de `.roo/skills/peer-audit/SKILL.md`. |
@@ -131,18 +133,18 @@ El journal y el estado los escribe el agente; el supervisor nunca los edita.
 
 | Skill | Modos | Descripción |
 |-------|-------|-------------|
-| `project-init` | research-architect | Onboarding guiado: diagnóstico de la estructura, interrogatorio al investigador y autogeneración asistida de matrices y ficheros iniciales. Incluye el bootstrap de autonomía (F4): rellena `project_type` y presupuesto en `data/autonomy_state.json` y verifica `autonomy_journal.md` / `escalation_queue.md` operativos. |
+| `project-init` | research-architect | Onboarding guiado: diagnóstico de la estructura, interrogatorio al investigador y autogeneración asistida de matrices y ficheros iniciales. Bootstrap de autonomía (F4) y **rama grant (F5)**: captura la convocatoria en `rag/calls/`, rellena `data/consortium.yaml`, `data/budget.yaml` (importes `PENDIENTE`) y la checklist de convocatoria. |
 | `prisma-synthesis` | lit-synthesizer | Flujo PRISMA 2020 completo en 7 fases (F0-F6: protocolo, búsqueda, screening, extracción, riesgo de sesgo, síntesis con GRADE, checklist de 27 ítems) + variante narrativa (patrón CCLG) para el Estado del Arte. |
-| `methods-reporting` | academic-writer | Estructura obligatoria de la sección de Métodos, checklist EQUATOR según diseño (CONSORT, STROBE, TRIPOD+AI, CARE, STARD, PRISMA, SPIRIT), power analysis, pre-registro, datos faltantes, reproducibilidad y declaraciones (CRediT, COI). |
-| `grant-workpackages` | research-architect | Contrato y reglas de construcción de `data/workpackages.yaml` (WPs con objectives, deliverables, milestones, effort_pm, risks); el YAML debe permanecer parseable. |
+| `methods-reporting` | academic-writer | Estructura obligatoria de la sección de Métodos, checklist EQUATOR según diseño (CONSORT, STROBE, TRIPOD+AI, CARE, STARD, PRISMA, SPIRIT), power analysis, pre-registro, datos faltantes, reproducibilidad y declaraciones (CRediT, COI). En proyectos grant NO aplica EQUATOR: la estructura la dicta la convocatoria (nota F5). |
+| `grant-workpackages` | research-architect | Contrato y reglas de construcción de `data/workpackages.yaml` (WPs con objectives, deliverables, milestones, effort_pm, risks); el YAML debe permanecer parseable. En grant: hitos casados con los plazos de la convocatoria, KPIs de impacto en `04_impact` y estado del arte apoyado en `rag/past_projects/` + las 4 fuentes MCP. |
 | `latex-tables` | academic-writer | Tablas con `booktabs` exclusivamente: sin líneas verticales ni `\hline`, convenciones numéricas y estadísticas, plantilla base. |
-| `peer-audit` | reviewer-2 | Checklist de auditoría en 6 fases (A1-A6): trazabilidad O/H, deuda `\todo`, integridad bibliográfica, fidelidad de datos, estilo y reporting EQUATOR. El visto bueno exige además 0 escalaciones ABIERTAS en `context/escalation_queue.md`. |
+| `peer-audit` | reviewer-2 | Checklist de auditoría en 7 fases (A1-A7): trazabilidad O/H, deuda `\todo`, integridad bibliográfica, fidelidad de datos, estilo, reporting EQUATOR y **A7 (solo grant): cobertura de `context/convocatoria_checklist.md`**. El visto bueno exige 0 CRÍTICOS, 0 escalaciones ABIERTAS y (en grant) 0 requisitos sin cubrir. |
 | `style-defluff` | academic-writer | Purga de muletillas de IA con linter `grep` en dos pasadas, excepciones técnicas y jerarquía normativa (gana `rules.md`). |
 | `s2-search` | lit-synthesizer | Búsqueda y verificación de artículos vía el MCP `semantic-scholar-mcp` (fases S0-S6): `search_paper`, `get_paper` (verificación de DOI), `get_authors` y `get_citation` (bibtex). Fuentes adicionales: `arxiv` para preprints y campos CS/EE, `pubmedmcp` (`search_abstracts`) para biomedicina/PRISMA y `crossref` (`crossref_doi_lookup`, export BibTeX/RIS) para verificación independiente de DOI/metadata. Backoff por fuente (§7): al agotar reintentos, registra D1 en `escalation_queue.md` y deja el `\todo{}` abierto. |
 
 ## 🔄 Flujo de trabajo recomendado
 
-1. **research-architect**: define objetivos e hipótesis en `context/hypothesis_matrix.md`, registra la convocatoria en `context/call_guidelines.md` y las estrategias de búsqueda en `rag/calls/`.
+1. **research-architect**: define objetivos e hipótesis en `context/hypothesis_matrix.md`, registra la convocatoria en `context/call_guidelines.md`, procesa el intake de `rag/` (convocatoria vigente en `rag/calls/`, proyectos parecidos en `rag/past_projects/`, memorias y guías en `rag/templates/`) y documenta las estrategias de búsqueda en `rag/calls/`. En grant, rellena `context/convocatoria_checklist.md`, `data/consortium.yaml` y `data/budget.yaml` con los datos del investigador.
 2. **lit-synthesizer**: ejecuta la búsqueda y registra la evidencia en `context/evidence_notes.md` y las referencias verificadas en `src/references.bib`.
 3. **academic-writer**: redacta las secciones en `src/` usando exclusivamente los datos de `data/stats_summary.json` y `context/hypothesis_matrix.md`, y las citas de `src/references.bib`.
 4. **reviewer-2**: audita con `.roo/skills/peer-audit/SKILL.md` y registra los hallazgos en `reviews/peer_review_log.md`.
@@ -154,6 +156,23 @@ El ciclo de deuda académica cierra los marcadores `\todo{}`:
 - `\todo{DATO PENDIENTE}` → lo cierra **research-architect** (dato en `stats_summary.json` o `hypothesis_matrix.md`); **academic-writer** sustituye el marcador por el valor registrado.
 - **reviewer-2** verifica con `grep` que no queden marcadores abiertos antes de dar el visto bueno.
 
+## 📚 Conocimiento local (rag/) — sistema de intake
+
+Cada proyecto generado incluye 3 directorios de **INTAKE** (material que sube el investigador), cada uno con su `README.md` (copiado de `templates/common/rag/`). Convención de nombres: `YYYY_fuente_titulo.md|pdf`; MD preferido, PDF aceptable.
+
+| Directorio | Qué subir | Lo usa (principal) | Para qué |
+|---|---|---|---|
+| `rag/calls/` | **Convocatoria vigente**: PDF/bases, criterios con pesos, formularios, notas del usuario | research-architect | Extraer requisitos → `context/convocatoria_checklist.md`, resumen operativo → `context/call_guidelines.md`, plazos → `data/workpackages.yaml` |
+| `rag/past_projects/` | **Proyectos parecidos y memorias previas** del laboratorio/consorcio | research-architect (estructura de consorcio/laboratorio) y lit-synthesizer (pistas de estado del arte) | Estructura de consorcio, WPs e indicadores; el estado del arte se cita solo tras verificarlo en las 4 fuentes MCP (§6) |
+| `rag/templates/` | **Memorias de convocatorias anteriores** y guías de estilo del organismo | research-architect (estructura) y academic-writer (estilo) | Aprender estructura y estilo que puntúan; los feedbacks de evaluación alimentan la auditoría |
+
+Reglas duras (§8 del marco académico, replicado como `00_academic_core.md`):
+
+1. **Re-verificación SSOT**: todo dato de un proyecto o memoria anterior (cifras, importes, capacidades) se re-verifica contra el SSOT actual antes de usarse; si no puede re-verificarse, marcador `\todo{DATO PENDIENTE}`. Nunca se presenta un dato viejo como actual.
+2. **Estilo sí, texto no**: prohibido copiar texto verbatim de memorias ajenas (plagio). Imitar estructura y estilo es legítimo; el texto ajeno no. Los requisitos de la convocatoria se registran solo desde material real en `rag/calls/`: nunca de memoria.
+
+El modo 📐 Arquitecto de Estructura (`research-architect`) tiene el fileRegex ampliado a TODO `rag/` (`^(context/.*|data/.*|rag/.*)$`): procesa el intake y escribe resúmenes en su ámbito; la búsqueda de literatura sigue siendo monopolio de `lit-synthesizer` (§6).
+
 ## 🚀 Guía de inicio
 
 1. **Crear un proyecto** (requiere bash real; en Windows usar Git Bash o WSL):
@@ -163,6 +182,7 @@ El ciclo de deuda académica cierra los marcadores `\todo{}`:
    bash init_paper.sh mi-revision --type prisma               # revisión sistemática
    bash init_paper.sh mi-tesis --type thesis                  # tesis/TFG/TFM
    bash init_paper.sh mi-sistema --type engineering           # paper de ingeniería
+   bash init_paper.sh mi-ppc --type grant                     # propuesta competitiva / PPC
    ```
 
    Para completar un proyecto existente sin sobrescribir nada:

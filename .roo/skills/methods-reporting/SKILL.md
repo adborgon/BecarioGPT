@@ -41,6 +41,8 @@ Antes de redactar `src/02_methodology.tex` (o equivalente), cruza `context/hypot
 
 ## Checklist según Diseño (EQUATOR)
 
+> **Nota (proyectos grant):** en propuestas competitivas / PPC (`--type grant`; `study_metadata.design: grant_proposal...`) NO aplica ninguna checklist EQUATOR: la estructura del documento la dicta la convocatoria y su cobertura se audita en `context/convocatoria_checklist.md` (peer-audit A7) con el plan de `grant-workpackages`. El resto de esta sección (trazabilidad de datos, fidelidad SSOT) sigue aplicando.
+
 Identifica el diseño del estudio registrado en `data/stats_summary.json` (`study_metadata.design`) y aplica la checklist EQUATOR correspondiente al redactar y al auditar:
 
 | Diseño | Estándar EQUATOR |
