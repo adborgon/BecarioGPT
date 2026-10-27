@@ -94,6 +94,45 @@
 			"alwaysAllow": [
 				"search_abstracts"
 			]
+		},
+		"crossref": {
+			"command": "python",
+			"args": [
+				"-m",
+				"uv",
+				"tool",
+				"run",
+				"crossref-mcp-server"
+			],
+			"env": {
+				"PYTHONIOENCODING": "utf-8",
+				"PYTHONUTF8": "1"
+			},
+			"disabled": false,
+			"autoApprove": [
+				"crossref_search",
+				"crossref_title_search",
+				"crossref_author_search",
+				"crossref_doi_lookup",
+				"crossref_journal_search",
+				"crossref_journal_works",
+				"crossref_funder_search",
+				"crossref_references",
+				"crossref_export_ris",
+				"crossref_export_bibtex"
+			],
+			"alwaysAllow": [
+				"crossref_search",
+				"crossref_title_search",
+				"crossref_author_search",
+				"crossref_doi_lookup",
+				"crossref_journal_search",
+				"crossref_journal_works",
+				"crossref_funder_search",
+				"crossref_references",
+				"crossref_export_ris",
+				"crossref_export_bibtex"
+			]
 		}
 	}
 }

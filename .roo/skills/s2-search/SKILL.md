@@ -59,6 +59,12 @@ Ejecuta la búsqueda de evidencia bibliográfica real mediante el servidor MCP `
 - Registro (idéntico a S5): evidencia en `context/evidence_notes.md` y entrada BibTeX verificada en `src/references.bib`; los abstracts devueltos incluyen DOI/PMID: registra el DOI de la versión publicada (o el PMID si no hay DOI) con su fecha de acceso.
 - Rate limit: ~3 peticiones/segundo al API de NCBI sin clave (hasta 10 con la clave gratuita `NCBI_API_KEY`, definida solo como variable de entorno del sistema, nunca en ficheros trackeados).
 
+## Fuente adicional: CrossRef (crossref-mcp-server)
+
+- Cuándo usarla: verificación independiente de DOI/metadata y apoyo bibliográfico, o cuando las fuentes anteriores no arrojen evidencia suficiente para el mismo tema. Las fases S0-S6 no cambian: en S3 usa el servidor `crossref` con su tool `crossref_doi_lookup` para confirmar de forma independiente el DOI y los metadatos (título, autores, año, revista) antes de registrar; `crossref_references` y `crossref_export_bibtex`/`crossref_export_ris` apoyan la construcción de la entrada.
+- Registro (idéntico a S5): evidencia en `context/evidence_notes.md` y entrada BibTeX verificada en `src/references.bib`. El export de CrossRef NO sustituye al registro S5: la entrada que añadas a `src/references.bib` debe seguir verificada y citando el DOI real.
+- Rate limit: uso educado del API oficial api.crossref.org (evita ráfagas que provoquen 402/429); `CROSSREF_MAILTO` opcional solo como variable de entorno del sistema (polite pool), nunca en ficheros trackeados.
+
 ## Reglas transversales
 - Respeta el rate limit del API (~1 petición/segundo): ante HTTP 429 espera 15-20 segundos antes de reintentar.
 - Prohibido inventar autores, años, DOI o entradas BibTeX: todo registro debe provenir de una respuesta real del API.
