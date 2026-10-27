@@ -81,10 +81,6 @@
 				"uv",
 				"tool",
 				"run",
-				"--from",
-				"git+https://github.com/dartmouth/pubmedmcp",
-				"--with",
-				"mcp<2",
 				"pubmedmcp"
 			],
 			"env": {
