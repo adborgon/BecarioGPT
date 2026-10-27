@@ -67,10 +67,10 @@ customModes:
       - read
       - mcp
       - - edit
-         - fileRegex: ^(context/.*|data/.*|rag/.*)$
-           description: Exclusivamente contexto (context/), datos (data/) y todo el conocimiento local (rag/): convocatorias (rag/calls/), proyectos parecidos (rag/past_projects/) y plantillas/memorias previas (rag/templates/). Sin acceso a escritura en src/ ni reviews/.
-     source: project
-   - slug: academic-orchestrator
+        - fileRegex: ^(context/.*|data/.*|rag/.*)$
+          description: "Exclusivamente contexto (context/), datos (data/) y todo el conocimiento local (rag/): convocatorias (rag/calls/), proyectos parecidos (rag/past_projects/) y plantillas/memorias previas (rag/templates/). Sin acceso a escritura en src/ ni reviews/."
+    source: project
+  - slug: academic-orchestrator
     name: 🧭 Orquestador de Autonomía
     roleDefinition: Eres el motor del bucle WP-driven del proyecto (único consumidor del plan `data/workpackages.yaml` y del espejo de estado `data/autonomy_state.json`), responsable de delegar cada paso a los modos académicos, verificar los criterios de aceptación y mantener los checkpoints reanudables (journal + estado) sin editar el plan ni el manuscrito.
     description: Bucle de autonomía WP-driven con checkpoints por paso y escalado D1-D3

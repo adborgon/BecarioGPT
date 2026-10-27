@@ -40,6 +40,10 @@
 #       define (data/consortium.yaml y data/budget.yaml como YAML; el resto
 #       de parseabilidad del tipo lo cubren los checks generales anteriores
 #       y la post-condicion parametrizada).
+#   [11] Guard de .roomodes: el fichero fuente del repo es YAML parseable
+#       (PyYAML) con los 5 modos academicos y campos minimos (fallback
+#       estructural con [WARN] sin PyYAML) y la copia de .roomodes a cada
+#       proyecto generado es identica byte a byte al fuente.
 #
 # Diseno:
 #   - Parametrizable por tipo de proyecto: PROJECT_TYPES contiene el catalogo
@@ -285,6 +289,51 @@ check_yaml_file() {
 }
 
 # ------------------------------------------------------------------------------
+# [T] Guard de .roomodes: parseabilidad del fuente y copia byte a byte
+# ------------------------------------------------------------------------------
+check_roomodes_source() {
+    # Valida el .roomodes FUENTE del repo: (a) con PyYAML exige los 5 modos
+    # academicos (por slug) y campos minimos en cada uno (roleDefinition,
+    # description, customInstructions, groups, source) ademas de un fileRegex
+    # en el grupo edit de research-architect; (b) sin PyYAML, validacion
+    # estructural minima (conteo de entradas - slug) marcada con [WARN].
+    _file="$SCRIPT_DIR/.roomodes"
+    if [ ! -s "$_file" ]; then
+        record_fail ".roomodes fuente: no existe o esta vacio ($_file)."
+        return 0
+    fi
+    if [ -n "$PYTHON_BIN" ] && "$PYTHON_BIN" -c "import yaml" > /dev/null 2>&1; then
+        if "$PYTHON_BIN" -c "import yaml,sys; d=yaml.safe_load(open(sys.argv[1], encoding='utf-8')); modes=d['customModes']; assert sorted(m.get('slug') for m in modes)==sorted(['lit-synthesizer','academic-writer','reviewer-2','research-architect','academic-orchestrator']), modes; assert all(all(k in m for k in ('roleDefinition','description','customInstructions','groups','source')) for m in modes), modes; ra=next(m for m in modes if m.get('slug')=='research-architect'); assert any(isinstance(g,list) and len(g)>1 and isinstance(g[1],dict) and g[0]=='edit' and g[1].get('fileRegex') for g in ra['groups']), ra['groups']" "$_file" > /dev/null 2>&1; then
+            t_ok ".roomodes fuente: YAML parseable (PyYAML) con los 5 modos academicos y campos minimos."
+        else
+            record_fail ".roomodes fuente: NO es YAML parseable o no tiene los 5 modos academicos con campos minimos."
+        fi
+    else
+        if [ "$(grep -c '^[[:space:]]*- slug:' "$_file")" -eq 5 ] && grep -q 'roleDefinition:' "$_file" && grep -q 'fileRegex:' "$_file"; then
+            t_warn ".roomodes fuente: python/PyYAML no disponible; validacion estructural minima (5 - slug con roleDefinition/fileRegex)."
+        else
+            record_fail ".roomodes fuente: estructura minima (5 - slug con roleDefinition/fileRegex) no encontrada."
+        fi
+    fi
+}
+
+check_roomodes_copy() {
+    # $1: proyecto; $2: tipo. La copia de .roomodes en el proyecto generado
+    # debe ser identica byte a byte al fuente del repo (el scaffold la copia
+    # integro, sin interpolar nada).
+    _proj="$1"; _type="$2"
+    if [ ! -s "$_proj/.roomodes" ]; then
+        record_fail "roomodes ($_type): falta o esta vacio el .roomodes copiado al proyecto."
+        return 0
+    fi
+    if cmp -s "$SCRIPT_DIR/.roomodes" "$_proj/.roomodes"; then
+        t_ok "roomodes ($_type): copia identica byte a byte al fuente del repo."
+    else
+        record_fail "roomodes ($_type): la copia de .roomodes difiere del fuente del repo."
+    fi
+}
+
+# ------------------------------------------------------------------------------
 # [T] F4: ficheros de autonomia presentes y estado parseable
 # ------------------------------------------------------------------------------
 check_autonomy_files() {
@@ -457,6 +506,10 @@ t_ok "Directorio temporal de trabajo: $TMP_ROOT"
 check_mcp_security "$TEMPLATE_ROOT/common/mcp.json" "fuente trackeada (templates/common)"
 check_mcp_servers "$TEMPLATE_ROOT/common/mcp.json" "fuente trackeada (templates/common)"
 
+# Guard de .roomodes (parseabilidad + 5 modos): un YAML invalido aqui se
+# propaga a TODOS los proyectos generados (el scaffold lo copia integro).
+check_roomodes_source
+
 # ------------------------------------------------------------------------------
 # [1]-[3], [6]-[7] Por cada tipo de proyecto: generacion, post-condicion
 #                 parametrizada, parseabilidad, consistencia LaTeX y noclobber
@@ -474,6 +527,7 @@ for TYPE in "${PROJECT_TYPES[@]}"; do
     check_postcondition "$PROJ" "$TYPE"
     check_mcp_security "$PROJ/.roo/mcp.json" "copiado al proyecto ($TYPE)"
     check_mcp_servers "$PROJ/.roo/mcp.json" "copiado al proyecto ($TYPE)"
+    check_roomodes_copy "$PROJ" "$TYPE"
     check_json "$PROJ/data/stats_summary.json"
     check_yaml "$PROJ/data/workpackages.yaml"
    # F5: artefactos YAML propios del tipo (presentes solo en grant).
